@@ -37,7 +37,11 @@ project (workspaceName)
         ["Source Files/*"] = {"src/**.c", "src/**.cpp","**.c", "**.cpp"},
         ["Application Resource Files/*"] = {"src/**.rc", "src/**.ico"},
     }
-    files {"**.c", "**.cpp", "**.h", "**.hpp"}
+    files {
+    "src/main.c",
+    "src/player.c",      -- Adicione isso
+    "include/player.h",  -- E isso, se quiser
+    "**.c", "**.cpp", "**.h", "**.hpp"}
 
     filter "system:windows"
         files {"src/**.rc", "src/**.ico"}

@@ -66,6 +66,7 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
-    "stdbool.h": "c"
+    "stdbool.h": "c",
+    "raylib.h": "c"
   }
 }

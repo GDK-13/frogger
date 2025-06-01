@@ -1,24 +1,16 @@
 #include "raylib.h"
-#include <stdlib.h>
+#include "player.h"
 #include <stdio.h>
-#include <stdbool.h>
-#include <time.h>
-#include <math.h>
 
-Texture2D background;
-
-int main()
-{
+int main() {
     const int screen_width = 448;
     const int screen_height = 512;
-
-
 
     InitWindow(screen_width, screen_height, "raylib example");
     SetTargetFPS(60);
 
-    background = LoadTexture("resources/bg/frogbreath_bg.png");
-
+    Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png");
+    Texture2D player = LoadTexture("resources/sprites/frogbreath_sp/sidle.png");
 
     if (background.id == 0) {
         printf("Erro ao carregar o background!\n");
@@ -26,26 +18,19 @@ int main()
         return 1;
     }
 
-    while (!WindowShouldClose())
-    {
-        BeginDrawing();
-        {
-            ClearBackground(RAYWHITE);
+    while (!WindowShouldClose()) {
+        UpdatePlayer();
 
-            DrawTexturePro(
-                background,
-                (Rectangle){0, 0, screen_width, screen_height},  // Origem da textura (src)
-                (Rectangle){0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()}, // Destino da textura (dst)
-                (Vector2){0, 0},
-                0.0f,
-                WHITE
-            );
-        }
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        DrawTexture(background, 0, 0, WHITE);
+        DrawPlayer(player);
         EndDrawing();
     }
 
+    UnloadTexture(player);
     UnloadTexture(background);
-    CloseWindow();
 
+    CloseWindow();
     return 0;
 }
