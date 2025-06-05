@@ -11,7 +11,7 @@ static double lastMoveTime = 0; // Tempo do último movimento
 void UpdatePlayer(void) {
     double currentTime = GetTime();
 
-    int spriteWidth = 32;  // ajuste para o tamanho real do seu sprite, se necessário
+    int spriteWidth = 32;
     int spriteHeight = 32;
 
     if ((currentTime - lastMoveTime) >= waitTime) {
@@ -30,7 +30,7 @@ void UpdatePlayer(void) {
             }
         }
         else if (IsKeyDown(KEY_UP)) {
-            if (playerPosition.y - playerSpeed >= 0) {
+            if (playerPosition.y - playerSpeed >= 96) {
                 playerPosition.y -= playerSpeed;
                 key = 3;
                 lastMoveTime = currentTime;
