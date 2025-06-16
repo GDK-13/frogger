@@ -1,9 +1,11 @@
 #include "raylib.h"
 #include "player.h"
-#include "enemies.h"
+#include "animation.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 
+struct player player;
 
 int main() {
     const int screen_width = 448;
@@ -13,49 +15,57 @@ int main() {
     SetTargetFPS(60);
 
     Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png");
-    Texture2D player = LoadTexture("resources/sprites/frogbreath_sp/sidle.png");
-    Enemy enemies[5] = {
-        {{448, 416}, 2, LoadTexture("resources/sprites/frogbreath_sp/carro1.png")},
-        {{0, 384}, 2, LoadTexture("resources/sprites/frogbreath_sp/carro2.png")},
-        {{448, 352}, 1, LoadTexture("resources/sprites/frogbreath_sp/carro3.png")},
-        {{0, 320}, 3, LoadTexture("resources/sprites/frogbreath_sp/carro4.png")},
-        {{0, 288}, 2, LoadTexture("resources/sprites/frogbreath_sp/caminhao.png")}
-    };
-
-
     if (background.id == 0) {
-        printf("Erro ao carregar o background!\n");
+        printf("Erro: Não foi possível carregar a textura 'resources/bg/frogbreath_bg.png'\n");
         CloseWindow();
         return 1;
     }
 
-    while (!WindowShouldClose()) {
+    player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){ 256, 448 });
 
-        UpdatePlayer();
+    Animation player_animation = {
+        .first_frame = 0,
+        .last_frame = 4,    
+        .current_frame = 0,
+        .duration_left = 0.1f,
+        .speed = 0.1f 
+    };
+
+    while (!WindowShouldClose()) {
+        float dt = GetFrameTime();
+        animation_update(&player_animation, dt);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
         DrawTexture(background, 0, 0, WHITE);
-        DrawPlayer(player);
-        
-        UpdateEnemies(enemies, false, 0);
-        UpdateEnemies(enemies, true, 1);
-        UpdateEnemies(enemies, false, 2);
-        UpdateEnemies(enemies, true, 3);
-        UpdateEnemies(enemies, true, 4);
 
-        DrawEnemies(enemies);
+        // Atualiza e desenha o jogador
+        player_update(&player, dt, 32, 32);
+        draw_player(&player, 32, 32, 5);
+
+        // Desenha a hitbox do jogador para teste
+        DrawRectangleLines(
+            player.hitbox.x,
+            player.hitbox.y,
+            player.hitbox.width,
+            player.hitbox.height,
+            RED
+        );
+        DrawRectangleLines(
+            0,
+            96,
+            background.width,
+            background.height-96,
+            RED
+        );
+
         EndDrawing();
+    
     }
 
-    for (int i = 0; i < 5; i++)
-    {
-        UnloadTexture(enemies[i].texture);
-    }
-
-    UnloadTexture(player);
     UnloadTexture(background);
-
+    player_unload(&player);
     CloseWindow();
+
     return 0;
 }
