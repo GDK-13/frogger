@@ -16,6 +16,7 @@ const char *car_sprites[] = {
     "resources/sprites/frogbreath_sp/carro4.png"   // Carro 4
 };
 
+
 // Estrutura global para armazenar os dados do jogador
 struct player player;
 
@@ -41,6 +42,12 @@ int main() {
     InitWindow(screen_width, screen_height, "raylib example"); // Cria uma janela com título "raylib example"
     SetTargetFPS(60); // Define o FPS alvo para 60
 
+    InitAudioDevice(); // Inicializa o dispositivo de áudio
+    if (!IsAudioDeviceReady()) { // Verifica se o dispositivo de áudio foi inicializado corretamente
+        printf("Erro: Não foi possível inicializar o dispositivo de áudio\n");
+        CloseWindow(); // Fecha a janela
+        return 1; // Sai do programa com erro
+    }
     // Inicializa o gerador de números aleatórios
     srand(time(NULL)); // Semente para geração de números aleatórios baseada no tempo atual
 
@@ -52,11 +59,30 @@ int main() {
         return 1; // Sai do programa com erro
     }
 
+    Sound effects[4] = {
+        LoadSound("resources/sounds/completion.wav"),
+        LoadSound("resources/sounds/death.wav"),
+        LoadSound("resources/sounds/jump.wav"),
+        LoadSound("resources/sounds/powerUp.wav")
+    };
+    SetSoundVolume(effects[2], 0.25f);  // Deixa o efeito com 25% do volume máximo
+    SetSoundVolume(effects[1], 0.80f);  // Deixa o efeito com 80% do volume máximo
+    SetSoundVolume(effects[0], 0.50f);  // Deixa o efeito com 50% do volume máximo
+    SetSoundVolume(effects[3], 0.50f);  // Deixa o efeito com 50% do volume máximo
+
+    Music frogsoath = LoadMusicStream("resources/sounds/frogsoath.ogg");
+
     // Inicializa o jogador
     player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){208, 448}); // Inicializa o jogador com posição inicial e sprite
 
+    
+    PlayMusicStream(frogsoath); // Inicia a música de fundo
+
     // Loop principal do jogo
     while (!WindowShouldClose()) { // Continua enquanto a janela não for fechada
+        UpdateMusicStream(frogsoath); // Atualiza a música de fundo
+        
+
         float dt = GetFrameTime(); // Obtém o tempo decorrido entre frames
 
         // Atualiza os temporizadores de spawn
@@ -86,13 +112,13 @@ int main() {
         }
 
         // Atualiza o jogador
-        player_update(&player, dt, 32, 32); // Atualiza a posição e estado do jogador
+        player_update(&player, dt, 32, 32, &effects[2]); // Atualiza a posição e estado do jogador
 
         // Verifica colisões
         if (!player.is_dead && !player.game_over) { // Apenas verifica se o jogador está vivo e o jogo não acabou
             for (int i = 0; i < active_car_count; i++) {
                 if (active_cars[i].check_collision(&active_cars[i], player.hitbox)) { // Verifica colisão entre jogador e carro
-                    player_die(&player); // Mata o jogador
+                    player_die(&player, &effects[1]); // Mata o jogador
                     break; // Sai do loop
                 }
             }
@@ -146,6 +172,11 @@ int main() {
     free(active_cars); // Libera o array dinâmico
     UnloadTexture(background); // Libera a textura de fundo
     player_unload(&player); // Libera os recursos do jogador
+    UnloadMusicStream(frogsoath); // Libera o stream de áudio da música
+    for (int i = 0; i < 4; i++) {
+        UnloadSound(effects[i]); // Libera os efeitos sonoros
+    }
+
     CloseWindow(); // Fecha a janela
 
     return 0; // Retorna 0 indicando execução bem-sucedida

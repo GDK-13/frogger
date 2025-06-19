@@ -54,7 +54,7 @@ void player_init(struct player *p, const char *texture_path, Vector2 position) {
 }
 
 // Atualiza o estado do jogador
-void player_update(struct player *p, float dt, int frame_width, int frame_height) {
+void player_update(struct player *p, float dt, int frame_width, int frame_height, Sound *jump_sound) {
     if (p->is_dead) {
         animation_update(&p->death_animation, dt);
         p->death_timer += dt;
@@ -103,15 +103,19 @@ void player_update(struct player *p, float dt, int frame_width, int frame_height
         if (IsKeyPressed(KEY_RIGHT)) {
             direction.x = frame_width; // Move para a direita
             p->rotation = 90.0f; // Rotação para a direita
+            PlaySound(*jump_sound); // Toca o som de pulo
         } else if (IsKeyPressed(KEY_LEFT)) {
             direction.x = -frame_width; // Move para a esquerda
             p->rotation = 270.0f; // Rotação para a esquerda
+            PlaySound(*jump_sound); // Toca o som de pulo
         } else if (IsKeyPressed(KEY_UP)) {
             direction.y = -frame_height; // Move para cima
             p->rotation = 0.0f; // Rotação para cima
+            PlaySound(*jump_sound); // Toca o som de pulo
         } else if (IsKeyPressed(KEY_DOWN)) {
             direction.y = frame_height; // Move para baixo
             p->rotation = 180.0f; // Rotação para baixo
+            PlaySound(*jump_sound); // Toca o som de pulo
         }
 
         // Se uma direção foi definida, calcula a nova posição alvo
@@ -164,13 +168,14 @@ void player_unload(struct player *p) {
     UnloadTexture(p->death_texture);
 }
 
-void player_die(struct player *p) {
+void player_die(struct player *p, Sound *death_sound) {
     if (p->is_dead || p->game_over) return;
     
     p->is_dead = true;
     p->death_timer = 0.0f;
     p->death_animation.current_frame = p->death_animation.first_frame;
     p->death_animation.duration_left = p->death_animation.speed;
+    PlaySound(*death_sound); // Toca o som de morte
 
     p->lives--;
     if (p->lives <= 0) {

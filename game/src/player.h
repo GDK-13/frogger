@@ -29,7 +29,7 @@ struct player {
 void player_init(struct player *p, const char *texture_path, Vector2 position);
 
 // Atualiza o estado do jogador
-void player_update(struct player *p, float dt, int frame_width, int frame_height);
+void player_update(struct player *p, float dt, int frame_width, int frame_height, Sound *jump_sound);
 
 // Desenha o jogador na tela
 void draw_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row);
@@ -37,7 +37,7 @@ void draw_player(const struct player *p, int frame_width, int frame_height, int 
 // Libera os recursos do jogador
 void player_unload(struct player *p);
 
-void player_die(struct player *p);
+void player_die(struct player *p, Sound *death_sound);
 
 void dead_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row);
 
