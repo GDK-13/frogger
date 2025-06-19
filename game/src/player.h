@@ -15,6 +15,14 @@ struct player {
     bool is_moving;          // Indica se o jogador está se movendo
     float rotation;          // Rotação do jogador
     Rectangle hitbox;        // Hitbox do jogador para colisões
+    bool is_dead;
+    bool game_over;
+    int lives;
+    float death_timer;
+    Vector2 start_position;
+    Texture2D death_texture;
+    Animation death_animation;
+    float min_y_position;
 };
 
 // Inicializa os dados do jogador
@@ -28,5 +36,9 @@ void draw_player(const struct player *p, int frame_width, int frame_height, int 
 
 // Libera os recursos do jogador
 void player_unload(struct player *p);
+
+void player_die(struct player *p);
+
+void dead_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row);
 
 #endif
