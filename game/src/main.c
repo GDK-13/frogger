@@ -1,11 +1,11 @@
-#include "raylib.h"       // Biblioteca principal para gráficos e entrada
-#include "player.h"       // Arquivo de cabeçalho para o jogador
-#include "enemies.h"      // Arquivo de cabeçalho para os inimigos
-#include "animation.h"    // Arquivo de cabeçalho para animações
-#include <stdio.h>        // Biblioteca padrão para entrada/saída
-#include <math.h>         // Biblioteca matemática para cálculos
-#include <stdlib.h>       // Biblioteca padrão para alocação de memória e funções gerais
-#include <time.h>         // Biblioteca para manipulação de tempo
+#include "raylib.h"       
+#include "player.h"       
+#include "enemies.h"      
+#include "animation.h"    
+#include <stdio.h>        
+#include <math.h>         
+#include <stdlib.h>       
+#include <time.h>         
 
 // Caminho dos sprites que serão carregados
 const char *car_sprites[] = {
