@@ -13,6 +13,8 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         game/src/animation.c \
         game/src/enemies.c \
         game/src/hud.c \
+        game/src/events.c \
+        game/src/trunk.c \
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \
@@ -26,6 +28,8 @@ elif [[ "$OSTYPE" == "msys" ]]; then
         game/src/animation.c \
         game/src/enemies.c \
         game/src/hud.c \
+        game/src/events.c \
+        game/src/trunk.c \
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \

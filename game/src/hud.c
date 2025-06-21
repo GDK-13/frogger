@@ -1,9 +1,10 @@
 #include "hud.h"      // Inclui o cabeçalho do HUD para acessar a declaração da função
+#include "events.h"  // Necessário para acessar a estrutura Time usada no HUD
 #include "raylib.h"   // Necessário para usar Texture2D, Vector2, DrawTexture, etc.
 #include <stdio.h>    // Necessário para usar sprintf
 
 // Função responsável por desenhar as informações do HUD na tela
-void draw_hud(Font font, int vidas, int score, Texture2D life) {
+void draw_hud(Font font, int vidas, int score, Texture2D life, Time *timer) {
     // --- Definição de cores do HUD ---
     Color light = (Color){ 205, 178, 171, 255 }; // Cor clara para textos e fundo
     Color dark  = (Color){ 46, 22, 51, 255 };    // Cor escura para o número do score
@@ -63,4 +64,21 @@ void draw_hud(Font font, int vidas, int score, Texture2D life) {
 
     DrawTextEx(font, "ENTER", enter_pos, font_size, 0, light);
     DrawTextEx(font, "PAUSE", pausar_pos, font_size, 0, light);
+
+    // --- Cronômetro no canto inferior direito ---
+
+    
+    
+    char timer_text[16];
+    sprintf(timer_text, "%02d %02d", timer->minutes, timer->seconds); // Formata o tempo do cronômetro como MM:SS
+    Vector2 timer_size = MeasureTextEx(font, timer_text, 20, 0);
+    Vector2 timer_position = { GetScreenWidth() - timer_size.x - 13, 484 }; // Canto inferior direito
+    DrawRectangle(timer_position.x - 4 , timer_position.y - 2, timer_size.x +20 , 28, light);
+
+    DrawRectangle(timer_position.x + 36 , timer_position.y + 16, 4 , 4 , dark);
+    DrawRectangle(timer_position.x + 36 , timer_position.y + 5, 4 , 4 , dark);
+
+    DrawTextEx(font, timer_text, timer_position, font_size, 0, dark);
+
+    DrawTextEx(font, "TIMER", (Vector2){ timer_position.x - 90, timer_position.y }, font_size, 0, light); // Desenha o texto "TIME" ao lado do cronômetro
 }

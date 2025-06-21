@@ -8,7 +8,7 @@
 typedef struct EnemyCar {
     Vector2 position;    // Posição atual do inimigo
     float speed;         // Velocidade do inimigo
-    Texture2D texture;   // Textura do inimigo 
+    Texture2D texture;   // Textura do inimigo
     Rectangle hitbox;    // Hitbox para colisão
     bool active;         // Indica se o inimigo está ativo ou não
 

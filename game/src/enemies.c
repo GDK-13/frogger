@@ -8,7 +8,7 @@
 // Função para inicializar os dados do inimigo
 static void enemy_init(struct EnemyCar *self, const char *texture_path, Vector2 position, float speed) {
     // Carrega a textura do inimigo a partir do caminho fornecido
-    self->texture = LoadTexture(texture_path); 
+    self->texture = LoadTexture(texture_path);
     if (self->texture.id == 0) { // Verifica se a textura foi carregada corretamente
         TraceLog(LOG_ERROR, "Erro ao carregar textura do inimigo : %s", texture_path);
         exit(1); // Sai do programa com erro
@@ -117,4 +117,3 @@ EnemyCar create_enemy_car() {
     };
     return enemy;
 }
-
