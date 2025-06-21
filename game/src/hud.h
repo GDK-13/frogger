@@ -10,4 +10,7 @@
 // score: pontuação atual do jogador
 void draw_hud(Font font, int vidas, int score, Texture2D life, Time *timer);
 
+// Função que pausa o jogo e exibe uma mensagem de pausa
+void pause_game(Font font);
+
 #endif

@@ -190,9 +190,10 @@ bool player_on_trunk(struct player *p, Trunk *trunk_list, int trunk_count, float
 
     for (int i = 0; i < trunk_count; i++) {
         if (trunk_list[i].active && CheckCollisionRecs(p->hitbox, trunk_list[i].hitbox)) {
-            // Move o jogador junto com o tronco
-            p->position.x += trunk_list[i].speed * dt;
-            p->target_position.x = p->position.x; // Evita que o LERP puxe de volta
+            if (!p->is_moving) {
+                p->position.x += trunk_list[i].speed * dt;
+                p->target_position.x = p->position.x;
+            }
             return true;
         }
     }

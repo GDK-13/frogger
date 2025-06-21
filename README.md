@@ -7,9 +7,8 @@ Um remake moderno do clássico Frogger, desenvolvido em C utilizando a bibliotec
 ## 🎮 Como Jogar
 
 - **Setas direcionais**: Movem o sapo (↑, ↓, ←, →)
-- **ENTER**: Reinicia o jogo
-- **ESC**: Encerra o jogo
-- **PAUSAR**: (implemente conforme desejar)
+- **ENTER**: Pausa o jogo
+- **ESC**: Fecha o jogo
 
 ---
 
@@ -44,11 +43,11 @@ Um remake moderno do clássico Frogger, desenvolvido em C utilizando a bibliotec
 - [Raylib](https://www.raylib.com/) instalada
 - Compilador C (gcc, clang, etc.)
 
-O projeto já possui um script de compilação automatizado chamado `build.sh` na raiz do repositório.
+*O projeto já possui um script de compilação automatizado chamado `build.sh` na raiz do repositório.*
 
 ### Linux/macOS
 
-Abra o terminal na pasta do projeto e execute:
+*Abra o terminal na pasta do projeto e execute:*
 
 ```sh
 chmod +x build.sh
@@ -57,13 +56,13 @@ chmod +x build.sh
 
 ### Windows (MSYS2/MinGW)
 
-Abra o terminal MSYS2 na pasta do projeto e execute:
+*Abra o terminal MSYS2 na pasta do projeto e execute:*
 
 ```sh
 sh build.sh
 ```
 
-O script irá compilar o projeto e, se a compilação for bem-sucedida, já executará o jogo automaticamente.
+*O script irá compilar o projeto e, se a compilação for bem-sucedida, já executará o jogo automaticamente.*
 
 ---
 

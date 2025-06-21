@@ -82,3 +82,13 @@ void draw_hud(Font font, int vidas, int score, Texture2D life, Time *timer) {
 
     DrawTextEx(font, "TIMER", (Vector2){ timer_position.x - 90, timer_position.y }, font_size, 0, light); // Desenha o texto "TIME" ao lado do cronômetro
 }
+
+void pause_game(Font font) {
+ int screen_width = GetScreenWidth();
+            int screen_height = GetScreenHeight();
+            DrawRectangle(0, 0, screen_width, screen_height, (Color){ 46, 22, 51, 170 });
+            const char *pause_text = "PAUSADO";
+            Vector2 pause_size = MeasureTextEx(font, pause_text, 40, 0);
+            Vector2 pause_position = { (screen_width - pause_size.x) / 2, (screen_height - pause_size.y) / 2 };
+            DrawTextEx(font, pause_text, pause_position, 40, 0, (Color){205, 178, 171, 255});
+}

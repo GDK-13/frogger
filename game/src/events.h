@@ -4,19 +4,21 @@
 #include "raylib.h"
 #include "player.h"
 
+// Estrutura para armazenar o tempo do jogo
 typedef struct {
-    int minutes;      // Minutos do cronômetro
-    int seconds;      // Segundos do cronômetro
-    float elapsed;    // Tempo total decorrido em segundos
+    int minutes;    // Minutos decorridos
+    int seconds;    // Segundos decorridos
+    float elapsed;  // Tempo total em segundos
 } Time;
 
-// Função que gerencia o cronômetro do jogo
-void timer_event(struct player *p, float delta_time, Font font, Time *time);
+// Atualiza o cronômetro do jogo
+void timer_event(struct player *p, float delta_time, Font fonte, Time *timer);
 
-// Função que gerencia as casas do topo e eventos de chegada
+// Gerencia e desenha as casas do topo e a pontuação ao chegar nelas
 void check_home_event(struct player *p, Texture2D sapo);
 
-// Função que gerencia o evento de pegar a mosca
+// Gerencia e desenha a mosca bônus
 void check_fly_event(struct player *p, Texture2D fly);
+
 
 #endif
