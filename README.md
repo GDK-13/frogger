@@ -73,7 +73,7 @@ O script irá compilar o projeto e, se a compilação for bem-sucedida, já exec
 - **Código**: Ingrid Kelly [(luzingrid)](https://github.com/luzingrid) e Kevin [(GDK-13)](https://github.com/GDK-13)
 - **Biblioteca gráfica**: [Raylib](https://www.raylib.com/)
 - **Sprites**: Kevin (GDK-13)
-- **Fontes**: [Informe as fontes ou autores das fontes, se aplicável]
+- **Fontes**: [*8_bit_fortress*](https://www.dafont.com/pt/8-bit-fortress.font?l[]=10) criada por Fortress Tech 
 - **Sons**:  
     - Efeitos sonoros: Kevin (GDK-13) usando: [jsrfx](https://sfxr.me/)
     - Música tema "Frog's Oath": Kevin (GDK-13) usando: [beepbox.co](https://www.beepbox.co)

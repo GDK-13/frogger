@@ -195,7 +195,7 @@ int main() {
     // Libera texturas
     UnloadTexture(background);
     UnloadTexture(life);
-    unloadTexture(frog);
+    UnloadTexture(frog);
 
     // Libera sons
     for (int i = 0; i < 4; i++) {
