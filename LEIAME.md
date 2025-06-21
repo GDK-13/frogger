@@ -1,4 +1,4 @@
-# Frogger 2025
+# Frogger 2025 
 
 Um remake moderno do clássico Frogger, desenvolvido em C utilizando a biblioteca [Raylib](https://www.raylib.com/). O objetivo é atravessar ruas movimentadas, evitar obstáculos e ocupar todas as casas no topo da tela!
 
