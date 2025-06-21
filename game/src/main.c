@@ -1,183 +1,220 @@
-#include "raylib.h"       
-#include "player.h"       
-#include "enemies.h"      
-#include "animation.h"    
-#include <stdio.h>        
-#include <math.h>         
-#include <stdlib.h>       
-#include <time.h>         
+#include "raylib.h"
+#include "player.h"
+#include "enemies.h"
+#include "hud.h"
+#include "animation.h"
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
 
-// Caminho dos sprites que serão carregados
+// Caminhos dos sprites dos carros
 const char *car_sprites[] = {
-    "resources/sprites/frogbreath_sp/caminhao.png", // Caminhão
-    "resources/sprites/frogbreath_sp/carro1.png",  // Carro 1
-    "resources/sprites/frogbreath_sp/carro2.png",  // Carro 2
-    "resources/sprites/frogbreath_sp/carro3.png",  // Carro 3
-    "resources/sprites/frogbreath_sp/carro4.png"   // Carro 4
+    "resources/sprites/frogbreath_sp/caminhao.png",
+    "resources/sprites/frogbreath_sp/carro1.png",
+    "resources/sprites/frogbreath_sp/carro2.png",
+    "resources/sprites/frogbreath_sp/carro3.png",
+    "resources/sprites/frogbreath_sp/carro4.png"
 };
-
 
 // Estrutura global para armazenar os dados do jogador
 struct player player;
 
 // Lista dinâmica para carros ativos
-EnemyCar *active_cars = NULL; // Array dinâmico para armazenar os carros ativos
-int active_car_count = 0;    // Contador de carros ativos
+EnemyCar *active_cars = NULL;
+int active_car_count = 0;
 
 // Temporizadores de spawn para cada faixa
-float spawn_timers[5] = {0}; // Temporizadores para controlar o spawn de carros em cada faixa
+float spawn_timers[5] = {0};
 
 // Limite máximo de carros na tela
 const int max_cars_on_screen = 10;
 
-// Faixas horizontais que cada carro pode passar
-const int lane_y_positions[] = {289, 321, 353, 385, 415}; // Posições Y das faixas
-#define NUM_LANES (sizeof(lane_y_positions) / sizeof(lane_y_positions[0])) // Número de faixas
+// Posições Y das faixas
+const int lane_y_positions[] = {289, 321, 353, 385, 415};
+#define NUM_LANES (sizeof(lane_y_positions) / sizeof(lane_y_positions[0]))
 
 int main() {
-    const int screen_width = 448; // Largura da janela
-    const int screen_height = 512; // Altura da janela
+    // --- Inicialização da janela ---
+    const int screen_width = 448;
+    const int screen_height = 512;
+    InitWindow(screen_width, screen_height, "Frogger 2025");
+    SetTargetFPS(60);
 
-    // Inicializa a janela do jogo
-    InitWindow(screen_width, screen_height, "raylib example"); // Cria uma janela com título "raylib example"
-    SetTargetFPS(60); // Define o FPS alvo para 60
-
-    InitAudioDevice(); // Inicializa o dispositivo de áudio
-    if (!IsAudioDeviceReady()) { // Verifica se o dispositivo de áudio foi inicializado corretamente
+    // --- Inicialização do áudio ---
+    InitAudioDevice();
+    if (!IsAudioDeviceReady()) {
         printf("Erro: Não foi possível inicializar o dispositivo de áudio\n");
-        CloseWindow(); // Fecha a janela
-        return 1; // Sai do programa com erro
+        CloseWindow();
+        return 1;
     }
-    // Inicializa o gerador de números aleatórios
-    srand(time(NULL)); // Semente para geração de números aleatórios baseada no tempo atual
 
-    // Carrega a textura de fundo
-    Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png"); // Carrega a textura do fundo
-    if (background.id == 0) { // Verifica se a textura foi carregada corretamente
+    // --- Inicialização de recursos ---
+    srand(time(NULL)); // Semente para números aleatórios
+
+    // --- Texturas ---
+    Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png");
+    if (background.id == 0) {
         printf("Erro: Não foi possível carregar a textura 'resources/bg/frogbreath_bg.png'\n");
-        CloseWindow(); // Fecha a janela
-        return 1; // Sai do programa com erro
+        CloseWindow();
+        return 1;
     }
+    Texture2D life = LoadTexture("resources/sprites/life.png");
+    Texture2D frog = LoadTexture("resources/sprites/frog.png");
 
+    // --- Sons ---
     Sound effects[4] = {
-        LoadSound("resources/sounds/completion.wav"),
-        LoadSound("resources/sounds/death.wav"),
-        LoadSound("resources/sounds/jump.wav"),
-        LoadSound("resources/sounds/powerUp.wav")
+        LoadSound("resources/sounds/completion.wav"), // Efeito de completar fase
+        LoadSound("resources/sounds/death.wav"),      // Efeito de morte
+        LoadSound("resources/sounds/jump.wav"),       // Efeito de pulo
+        LoadSound("resources/sounds/powerUp.wav")     // Efeito de power-up
     };
-    SetSoundVolume(effects[2], 0.25f);  // Deixa o efeito com 25% do volume máximo
-    SetSoundVolume(effects[1], 0.80f);  // Deixa o efeito com 80% do volume máximo
-    SetSoundVolume(effects[0], 0.50f);  // Deixa o efeito com 50% do volume máximo
-    SetSoundVolume(effects[3], 0.50f);  // Deixa o efeito com 50% do volume máximo
+    SetSoundVolume(effects[0], 0.50f);
+    SetSoundVolume(effects[1], 0.80f);
+    SetSoundVolume(effects[2], 0.25f);
+    SetSoundVolume(effects[3], 0.50f);
 
+    // --- Música ---
     Music frogsoath = LoadMusicStream("resources/sounds/frogsoath.ogg");
 
-    // Inicializa o jogador
-    player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){208, 448}); // Inicializa o jogador com posição inicial e sprite
+    // --- Fontes ---
+    Font font = LoadFontEx("resources/fontes/8_bit_fortress/8-bit-fortress.ttf", 32, NULL, 0);
+    if (font.baseSize == 0) {
+        printf("Erro: Não foi possível carregar a fonte 8-bit\n");
+        CloseWindow();
+        return 1;
+    }
 
-    
-    PlayMusicStream(frogsoath); // Inicia a música de fundo
+    // --- Inicialização do jogador ---
+    player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){224, 448});
 
-    // Loop principal do jogo
-    while (!WindowShouldClose()) { // Continua enquanto a janela não for fechada
+    // --- Inicia a música de fundo ---
+    PlayMusicStream(frogsoath);
+
+    // --- Loop principal do jogo ---
+    while (!WindowShouldClose()) {
         UpdateMusicStream(frogsoath); // Atualiza a música de fundo
-        
+        float dt = GetFrameTime();    // Tempo decorrido desde o último frame
 
-        float dt = GetFrameTime(); // Obtém o tempo decorrido entre frames
-
-        // Atualiza os temporizadores de spawn
+        // --- Spawn de carros por faixa ---
         for (int i = 0; i < NUM_LANES; i++) {
-            spawn_timers[i] -= dt; // Reduz o temporizador
-            if (spawn_timers[i] <= 0) { // Se o temporizador atingir 0
-                spawn_timers[i] = rand() % 3 + 1; // Define um tempo aleatório para o próximo spawn
-                spawn_car(&active_cars, &active_car_count, car_sprites[i], (i % 2 == 0) ? 100.0f : -120.0f, i, max_cars_on_screen, lane_y_positions); // Spawn do carro
+            spawn_timers[i] -= dt;
+            if (spawn_timers[i] <= 0) {
+                spawn_timers[i] = rand() % 3 + 1; // Tempo aleatório para próximo spawn
+                spawn_car(&active_cars, &active_car_count, car_sprites[i],
+                          (i % 2 == 0) ? 100.0f : -120.0f, i, max_cars_on_screen, lane_y_positions);
             }
         }
 
-        // Atualiza os carros ativos
+        // --- Atualização dos carros ativos ---
         for (int i = 0; i < active_car_count; i++) {
-            active_cars[i].update(&active_cars[i], dt); // Atualiza a posição do carro
+            active_cars[i].update(&active_cars[i], dt);
 
             // Remove carros que saíram da tela
-            if ((active_cars[i].speed > 0 && active_cars[i].position.x > GetScreenWidth()) || // Carro indo para a direita
-                (active_cars[i].speed < 0 && active_cars[i].position.x < -active_cars[i].texture.width)) { // Carro indo para a esquerda
-                active_cars[i].unload(&active_cars[i]); // Libera os recursos do carro
+            if ((active_cars[i].speed > 0 && active_cars[i].position.x > GetScreenWidth()) ||
+                (active_cars[i].speed < 0 && active_cars[i].position.x < -active_cars[i].texture.width)) {
+                active_cars[i].unload(&active_cars[i]);
                 for (int j = i; j < active_car_count - 1; j++) {
-                    active_cars[j] = active_cars[j + 1]; // Reorganiza o array
+                    active_cars[j] = active_cars[j + 1];
                 }
-                active_car_count--; // Reduz o contador de carros ativos
-                active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar)); // Realoca memória para o array
-                i--; // Ajusta o índice para evitar pular o próximo carro
+                active_car_count--;
+                active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar));
+                i--;
             }
         }
 
-        // Atualiza o jogador
-        player_update(&player, dt, 32, 32, &effects[2]); // Atualiza a posição e estado do jogador
+        // --- Atualização do jogador ---
+        player_update(&player, dt, 32, 32, &effects[2]);
 
-        // Verifica colisões
-        if (!player.is_dead && !player.game_over) { // Apenas verifica se o jogador está vivo e o jogo não acabou
+        // --- Verificação de colisões entre jogador e carros ---
+        if (!player.is_dead && !player.game_over) {
             for (int i = 0; i < active_car_count; i++) {
-                if (active_cars[i].check_collision(&active_cars[i], player.hitbox)) { // Verifica colisão entre jogador e carro
-                    player_die(&player, &effects[1]); // Mata o jogador
-                    break; // Sai do loop
+                if (active_cars[i].check_collision(&active_cars[i], player.hitbox)) {
+                    player_die(&player, &effects[1]);
+                    break;
                 }
             }
         }
 
-        BeginDrawing(); // Inicia o desenho na tela
-        ClearBackground(RAYWHITE); // Limpa a tela com cor branca
+        // --- Desenho de todos os elementos na tela ---
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
 
-        // Desenha o fundo
-        DrawTexture(background, 0, 0, WHITE); // Desenha a textura de fundo
+        // Fundo
+        DrawTexture(background, 0, 0, WHITE);
 
-        // Desenha o jogador (vivo ou morto)
+        // Jogador (vivo ou morto)
         if (!player.is_dead) {
-            draw_player(&player, 32, 32, 5); // Desenha o jogador vivo
+            draw_player(&player, 32, 32, 5);
         } else {
-            dead_player(&player, 32, 32, 3); // Desenha o jogador morto
+            dead_player(&player, 32, 32, 3);
         }
 
-        // Desenha os carros ativos
+        // Carros inimigos
         for (int i = 0; i < active_car_count; i++) {
-            active_cars[i].draw(&active_cars[i]); // Desenha cada carro ativo
+            active_cars[i].draw(&active_cars[i]);
         }
 
-        // Exibe informações na tela
-        DrawText(TextFormat("Vidas: %d", player.lives), 10, 10, 20, BLACK); // Exibe o número de vidas
-        DrawText(TextFormat("Score: %d", player.score), 320, 10, 20, BLACK); // Exibe o score
+        // HUD (vidas, score, etc)
+        draw_hud(font, player.lives, player.score, life);
 
-        if (player.game_over) { // Se o jogo acabou
-            DrawText("GAME OVER", 140, 200, 40, RED); // Exibe "GAME OVER"
-            DrawText("Pressione ESPAÇO para recomeçar", 80, 260, 20, BLACK); // Instrução para reiniciar
-            if (IsKeyPressed(KEY_SPACE)) { // Se a tecla espaço for pressionada
-                player.game_over = false; // Reseta o estado do jogo
-                player.lives = 3; // Reseta as vidas
-                player.score = 0; // Reseta o score
-                player.position = player.start_position; // Reseta a posição do jogador
-                player.target_position = player.start_position; // Reseta a posição alvo
-                player.anim.current_frame = 0; // Reseta a animação
-                player.rotation = 0.0f; // Reseta a rotação
-                player.is_dead = false; // Marca o jogador como vivo
-                player.min_y_position = player.start_position.y; // Reseta a posição mínima
+        // --- Tela de Game Over ---
+        if (player.game_over) {
+            DrawText("GAME OVER", 140, 200, 40, RED);
+            DrawText("Pressione ESPAÇO para recomeçar", 80, 260, 20, BLACK);
+            if (IsKeyPressed(KEY_SPACE)) {
+                // Reinicia o estado do jogador
+                player.game_over = false;
+                player.lives = 5;
+                player.score = 0;
+                player.position = player.start_position;
+                player.target_position = player.start_position;
+                player.anim.current_frame = 0;
+                player.rotation = 0.0f;
+                player.is_dead = false;
+                player.min_y_position = player.start_position.y;
+                for (int i = 0; i < 5; i++) {
+                    player.oc_houses[i] = false;
+                }
             }
         }
 
-        EndDrawing(); // Finaliza o desenho na tela
+        // --- Verifica se o jogador chegou ao destino ---
+        get_home(&player, &frog); // Verifica se o jogador chegou ao destino
+
+        EndDrawing();
     }
 
-    // Libera os recursos
+    // --- Liberação de recursos ---
+    // Libera carros ativos
     for (int i = 0; i < active_car_count; i++) {
-        active_cars[i].unload(&active_cars[i]); // Libera os recursos de cada carro ativo
+        active_cars[i].unload(&active_cars[i]);
     }
-    free(active_cars); // Libera o array dinâmico
-    UnloadTexture(background); // Libera a textura de fundo
-    player_unload(&player); // Libera os recursos do jogador
-    UnloadMusicStream(frogsoath); // Libera o stream de áudio da música
+    free(active_cars);
+
+    // Libera texturas
+    UnloadTexture(background);
+    UnloadTexture(life);
+    unloadTexture(frog);
+
+    // Libera sons
     for (int i = 0; i < 4; i++) {
-        UnloadSound(effects[i]); // Libera os efeitos sonoros
+        UnloadSound(effects[i]);
     }
+    StopMusicStream(frogsoath);
 
-    CloseWindow(); // Fecha a janela
+    // Libera música
+    UnloadMusicStream(frogsoath);
 
-    return 0; // Retorna 0 indicando execução bem-sucedida
+    // Libera recursos do jogador
+    player_unload(&player);
+
+    // Libera fontes
+    UnloadFont(font);
+
+    // Fecha dispositivos e janela
+    CloseAudioDevice();
+    CloseWindow();
+
+    return 0;
 }
