@@ -4,7 +4,8 @@
 #include "trunk.h"
 #include "events.h"
 #include "animation.h"
-#include "hud.h" // ATENÇÃO: Mantido da versão original. Verifique se este arquivo existe.
+#include "hud.h"
+#include "turtle.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -48,9 +49,16 @@ float spawn_timers[NUM_LANES] = {0};
 Trunk *trunk = NULL;
 int trunk_count = 0;
 const int max_trunk_on_screen = 10;
-const int lanetrunk_y_positions[] = {225, 186, 140, 97};
+const int lanetrunk_y_positions[] = {198, 126, 96};
 #define NUM_LANE_TRUNK (sizeof(lanetrunk_y_positions) / sizeof(lanetrunk_y_positions[0]))
 float trunk_spawn_timers[NUM_LANE_TRUNK] = {0};
+
+Turtle *turtle = NULL;
+int turtle_count = 0;
+const int max_turtles_on_screen = 10;
+const int turtle_lane_y_positions[] = {225, 156}; 
+#define NUM_TURTLE_LANES (sizeof(turtle_lane_y_positions) / sizeof(turtle_lane_y_positions[0]))
+float turtle_spawn_timers[NUM_TURTLE_LANES] = {0};
 
 int main() {
     // --- Inicialização da janela ---
@@ -135,7 +143,17 @@ int main() {
                 spawn_trunk(&trunk, &trunk_count, sprite_set, speed, i, max_trunk_on_screen, lanetrunk_y_positions, parts);
             }
         }
-        
+
+        for (int i = 0; i < NUM_TURTLE_LANES; i++) {
+        turtle_spawn_timers[i] -= dt;
+            if (turtle_spawn_timers[i] <= 0) {
+            turtle_spawn_timers[i] = (rand() % 3) + 4; // Tempo aleatório de 4-6s
+            float speed = (i % 2 == 0) ? 45.0f : -60.0f;
+            int parts = 3;
+            spawn_turtle(&turtle, &turtle_count, "resources/sprites/frogbreath_sp/tartaruga.png", speed, i, max_turtles_on_screen, turtle_lane_y_positions, parts);
+    }
+}
+
         // --- Atualização dos carros ativos ---
         for (int i = 0; i < active_car_count; i++) {
             active_cars[i].update(&active_cars[i], dt);
@@ -175,17 +193,38 @@ int main() {
                 i--;
             }
         }
+
+        for (int i = 0; i < turtle_count; i++) {
+            turtle[i].update(&turtle[i], dt);
+             if ((turtle[i].speed > 0 && turtle[i].position.x > GetScreenWidth()) ||
+             (turtle[i].speed < 0 && turtle[i].position.x + turtle[i].hitbox.width < 0)) {
+               turtle[i].unload(&turtle[i]);
+                for (int j = i; j < turtle_count - 1; j++) {
+                    turtle[j] = turtle[j + 1];
+                }
+                turtle_count--;
+                if (turtle_count > 0) {
+                    turtle = realloc(turtle, turtle_count * sizeof(Turtle));
+                } else {
+                    free(turtle);
+                    turtle = NULL;
+                }
+                i--;
+            }
+        }
+    
+        Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160};
+        bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt);
+        bool on_turtle = player_on_turtle(&player, turtle, turtle_count, dt);
+
+
+        if (CheckCollisionRecs(player.hitbox, water_area) && !on_trunk && !on_turtle && !player.is_dead) {
+            player_die(&player, &effects[1]); // Afoga o jogador
+        }
         
         // --- Atualização do jogador ---
         player_update(&player, dt, 32, 32, &effects[2]);
 
-        Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160};
-        bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt);
-
-        if (CheckCollisionRecs(player.hitbox, water_area) && !on_trunk && !player.is_dead) {
-            player_die(&player, &effects[1]); // Afoga o jogador
-        }
-        
         // --- Verificação de colisões ---
         if (!player.is_dead && !player.game_over) {
             // Colisão com carros
@@ -211,6 +250,11 @@ int main() {
         for (int i = 0; i < active_car_count; i++) {
             active_cars[i].draw(&active_cars[i]);
         }
+
+        // Tartaruga
+        for (int i = 0; i < turtle_count; i++) {
+        turtle[i].draw(&turtle[i]);
+        }
         
         // Jogador
         if (!player.is_dead) {
@@ -223,7 +267,6 @@ int main() {
         // HUD
         draw_hud(font, player.lives, player.score, life, &timer);
         
-
         check_home_event(&player, frog);
         check_fly_event(&player, fly);
 
@@ -272,6 +315,11 @@ int main() {
     if (trunk) {
         for (int i = 0; i < trunk_count; i++) trunk[i].unload(&trunk[i]);
         free(trunk);
+    }
+
+    if (turtle) {
+    for (int i = 0; i < turtle_count; i++) turtle[i].unload(&turtle[i]);
+    free(turtle);
     }
 
     UnloadTexture(background);

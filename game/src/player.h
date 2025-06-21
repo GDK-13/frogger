@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "animation.h"
 #include "trunk.h"
+#include "turtle.h"
 #include <stdbool.h>
 
 // Estrutura para armazenar os dados do jogador
@@ -50,5 +51,8 @@ void get_home(struct player *p, Texture2D *sapo);
 
 // Verifica se o jogador está em cima de um tronco
 bool player_on_trunk(struct player *p, Trunk *trunk, int trunk_count, float dt);
+
+// Verifica se o jogador está em cima de uma tartaruga
+bool player_on_turtle(struct player *player, Turtle *turtle, int turtle_count, float dt);
 
 #endif
