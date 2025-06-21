@@ -69,6 +69,7 @@
     "stdbool.h": "c",
     "raylib.h": "c",
     "stdlib.h": "c",
-    "animation.h": "c"
+    "animation.h": "c",
+    "floatingobj.h": "c"
   }
 }

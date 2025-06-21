@@ -1,9 +1,16 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+<<<<<<< HEAD
 #include "raylib.h"      // Biblioteca principal para gráficos, entrada e tipos como Vector2, Texture2D, Rectangle, Sound
 #include "animation.h"   // Inclui a estrutura e funções de animação
 #include <stdbool.h>     // Para o tipo bool
+=======
+#include "raylib.h"
+#include "animation.h"
+#include "trunk.h"
+#include <stdbool.h>
+>>>>>>> 8651578 (Troncos)
 
 // Estrutura para armazenar os dados do jogador
 struct player {
@@ -46,5 +53,13 @@ void dead_player(const struct player *p, int frame_width, int frame_height, int 
 
 // Verifica se o jogador chegou ao seu destino e atualiza a posição
 void get_home(struct player *p, Texture2D *sapo);
+// Em caso de morte do jogador
+void player_die(struct player *p);
+
+// Desenhar animação de morte
+void dead_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row);
+
+// Verifica se o sapo está em cima de um objeto
+bool player_on_trunk(struct player *p, Trunk *trunk, int log_count, float dt);
 
 #endif

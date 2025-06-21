@@ -3,8 +3,14 @@
 #include <stdlib.h>      // Para funções de alocação e controle de fluxo
 #include <stdbool.h>     // Para o tipo bool
 
+<<<<<<< HEAD
 #include "player.h"      // Cabeçalho da TAD player
 #include "animation.h"   // Cabeçalho da TAD de animação
+=======
+#include "player.h"
+#include "animation.h"
+#include "trunk.h"
+>>>>>>> 8651578 (Troncos)
 
 bool oc_houses[5] = { false, false, false, false, false };
 
@@ -73,9 +79,16 @@ void player_update(struct player *p, float dt, int frame_width, int frame_height
     if (p->is_dead) {
         animation_update(&p->death_animation, dt);
         p->death_timer += dt;
+<<<<<<< HEAD
 
         // Após 2 segundos, revive o jogador ou finaliza o jogo
         if (!p->game_over && p->death_timer >= 2.0f) {
+=======
+    
+        p->hitbox = (Rectangle){0, 0, 0, 0}; // Zera a Hitbox
+
+    if (!p->game_over && p->death_timer >= 2.0f) {
+>>>>>>> 8651578 (Troncos)
             p->is_dead = false;
             p->position = p->start_position;
             p->target_position = p->start_position;
@@ -151,6 +164,7 @@ void player_update(struct player *p, float dt, int frame_width, int frame_height
         }
     }
 
+
     // Atualiza a hitbox para acompanhar o jogador
     p->hitbox.x = p->position.x + 4;
     p->hitbox.y = p->position.y + 4;
@@ -195,6 +209,8 @@ void player_unload(struct player *p) {
 // Executa a lógica de morte do jogador (animação, decremento de vidas, etc)
 void player_die(struct player *p, Sound *death_sound) {
     if (p->is_dead || p->game_over) return; // Não faz nada se já está morto ou game over
+void player_die(struct player *p) {
+    if (p->is_dead) return;
     
     p->is_dead = true; // Marca como morto
     p->death_timer = 0.0f; // Reseta o temporizador de morte
@@ -258,4 +274,21 @@ void get_home(struct player *p, Texture2D *sapo) {
             }
         }
     }
+// Verifica se o sapo está em cima do tronco
+bool player_on_trunk(struct player *p, Trunk *trunk, int trunk_count, float dt) {
+    if (!p || !trunk || p->is_dead || p->game_over) return false;
+
+    // Ponto inferior central do sapo
+    Vector2 player_bottom = {
+        p->hitbox.x + p->hitbox.width / 2.0f,
+        p->hitbox.y + p->hitbox.height
+    };
+
+    for (int i = 0; i < trunk_count; i++) {
+        if (!trunk[i].active) continue;
+
+        if (CheckCollisionPointRec(player_bottom, trunk[i].hitbox)) {
+        }
+    }
+    return false;
 }

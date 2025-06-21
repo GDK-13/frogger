@@ -12,7 +12,11 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         game/src/player.c \
         game/src/animation.c \
         game/src/enemies.c \
+<<<<<<< HEAD
         game/src/hud.c \
+=======
+        game/src/trunk.c \
+>>>>>>> 8651578 (Troncos)
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \
@@ -25,7 +29,11 @@ elif [[ "$OSTYPE" == "msys" ]]; then
         game/src/player.c \
         game/src/animation.c \
         game/src/enemies.c \
+<<<<<<< HEAD
         game/src/hud.c \
+=======
+        game/src/trunk.c \
+>>>>>>> 8651578 (Troncos)
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \
