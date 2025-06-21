@@ -1,8 +1,10 @@
 #include "raylib.h"
 #include "player.h"
 #include "enemies.h"
-#include "hud.h"
+#include "trunk.h"
+#include "events.h"
 #include "animation.h"
+#include "hud.h" // ATENÇÃO: Mantido da versão original. Verifique se este arquivo existe.
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -17,22 +19,38 @@ const char *car_sprites[] = {
     "resources/sprites/frogbreath_sp/carro4.png"
 };
 
+// Caminhos dos sprites dos troncos
+const char *trunk_sprites[] = {
+    "resources/sprites/frogbreath_sp/tronco1.png",
+    "resources/sprites/frogbreath_sp/tronco2.png",
+    "resources/sprites/frogbreath_sp/tronco3.png",
+    "resources/sprites/frogbreath_sp/tronco4.png"
+};
+
+const char *two_part_trunk[] = {
+    "resources/sprites/frogbreath_sp/tronco1.png",
+    "resources/sprites/frogbreath_sp/tronco4.png"
+};
+
 // Estrutura global para armazenar os dados do jogador
 struct player player;
+Time timer;
 
 // Lista dinâmica para carros ativos
 EnemyCar *active_cars = NULL;
 int active_car_count = 0;
-
-// Temporizadores de spawn para cada faixa
-float spawn_timers[5] = {0};
-
-// Limite máximo de carros na tela
 const int max_cars_on_screen = 10;
-
-// Posições Y das faixas
 const int lane_y_positions[] = {289, 321, 353, 385, 415};
 #define NUM_LANES (sizeof(lane_y_positions) / sizeof(lane_y_positions[0]))
+float spawn_timers[NUM_LANES] = {0};
+
+// Lista dinâmica para troncos ativos
+Trunk *trunk = NULL;
+int trunk_count = 0;
+const int max_trunk_on_screen = 10;
+const int lanetrunk_y_positions[] = {225, 186, 140, 97};
+#define NUM_LANE_TRUNK (sizeof(lanetrunk_y_positions) / sizeof(lanetrunk_y_positions[0]))
+float trunk_spawn_timers[NUM_LANE_TRUNK] = {0};
 
 int main() {
     // --- Inicialização da janela ---
@@ -48,9 +66,9 @@ int main() {
         CloseWindow();
         return 1;
     }
-
+    
     // --- Inicialização de recursos ---
-    srand(time(NULL)); // Semente para números aleatórios
+    srand(time(NULL));
 
     // --- Texturas ---
     Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png");
@@ -61,13 +79,14 @@ int main() {
     }
     Texture2D life = LoadTexture("resources/sprites/life.png");
     Texture2D frog = LoadTexture("resources/sprites/frog.png");
+    Texture2D fly =  LoadTexture("resources/sprites/fly.png");
 
     // --- Sons ---
     Sound effects[4] = {
-        LoadSound("resources/sounds/completion.wav"), // Efeito de completar fase
-        LoadSound("resources/sounds/death.wav"),      // Efeito de morte
-        LoadSound("resources/sounds/jump.wav"),       // Efeito de pulo
-        LoadSound("resources/sounds/powerUp.wav")     // Efeito de power-up
+        LoadSound("resources/sounds/completion.wav"),
+        LoadSound("resources/sounds/death.wav"),
+        LoadSound("resources/sounds/jump.wav"),
+        LoadSound("resources/sounds/powerUp.wav")
     };
     SetSoundVolume(effects[0], 0.50f);
     SetSoundVolume(effects[1], 0.80f);
@@ -88,29 +107,38 @@ int main() {
     // --- Inicialização do jogador ---
     player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){224, 448});
 
-    // --- Inicia a música de fundo ---
     PlayMusicStream(frogsoath);
 
     // --- Loop principal do jogo ---
     while (!WindowShouldClose()) {
-        UpdateMusicStream(frogsoath); // Atualiza a música de fundo
-        float dt = GetFrameTime();    // Tempo decorrido desde o último frame
+        UpdateMusicStream(frogsoath);
+        float dt = GetFrameTime();
 
         // --- Spawn de carros por faixa ---
         for (int i = 0; i < NUM_LANES; i++) {
             spawn_timers[i] -= dt;
             if (spawn_timers[i] <= 0) {
-                spawn_timers[i] = rand() % 3 + 1; // Tempo aleatório para próximo spawn
+                spawn_timers[i] = rand() % 3 + 1;
                 spawn_car(&active_cars, &active_car_count, car_sprites[i],
                           (i % 2 == 0) ? 100.0f : -120.0f, i, max_cars_on_screen, lane_y_positions);
             }
         }
 
+        // --- Spawn de troncos por faixa ---
+        for (int i = 0; i < NUM_LANE_TRUNK; i++) {
+            trunk_spawn_timers[i] -= dt;
+            if (trunk_spawn_timers[i] <= 0) {
+                trunk_spawn_timers[i] = (rand() % 3) + 2; // Tempo aleatório entre 2 e 4 segundos
+                float speed = (i % 2 == 0) ? 50.0f : -70.0f;
+                int parts = (rand() % 2 == 0) ? 2 : 4;
+                const char **sprite_set = (parts == 2) ? two_part_trunk : trunk_sprites;
+                spawn_trunk(&trunk, &trunk_count, sprite_set, speed, i, max_trunk_on_screen, lanetrunk_y_positions, parts);
+            }
+        }
+        
         // --- Atualização dos carros ativos ---
         for (int i = 0; i < active_car_count; i++) {
             active_cars[i].update(&active_cars[i], dt);
-
-            // Remove carros que saíram da tela
             if ((active_cars[i].speed > 0 && active_cars[i].position.x > GetScreenWidth()) ||
                 (active_cars[i].speed < 0 && active_cars[i].position.x < -active_cars[i].texture.width)) {
                 active_cars[i].unload(&active_cars[i]);
@@ -118,16 +146,49 @@ int main() {
                     active_cars[j] = active_cars[j + 1];
                 }
                 active_car_count--;
-                active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar));
+                if (active_car_count > 0) {
+                    active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar));
+                } else {
+                    free(active_cars);
+                    active_cars = NULL;
+                }
                 i--;
             }
         }
 
+        // --- Atualização dos troncos ativos ---
+        for (int i = 0; i < trunk_count; i++) {
+            trunk[i].update(&trunk[i], dt);
+            if ((trunk[i].speed > 0 && trunk[i].position.x > GetScreenWidth()) ||
+                (trunk[i].speed < 0 && trunk[i].position.x + trunk[i].hitbox.width < 0)) {
+                trunk[i].unload(&trunk[i]);
+                for (int j = i; j < trunk_count - 1; j++) {
+                    trunk[j] = trunk[j + 1];
+                }
+                trunk_count--;
+                if (trunk_count > 0) {
+                    trunk = realloc(trunk, trunk_count * sizeof(Trunk));
+                } else {
+                    free(trunk);
+                    trunk = NULL;
+                }
+                i--;
+            }
+        }
+        
         // --- Atualização do jogador ---
         player_update(&player, dt, 32, 32, &effects[2]);
 
-        // --- Verificação de colisões entre jogador e carros ---
+        Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160};
+        bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt);
+
+        if (CheckCollisionRecs(player.hitbox, water_area) && !on_trunk && !player.is_dead) {
+            player_die(&player, &effects[1]); // Afoga o jogador
+        }
+        
+        // --- Verificação de colisões ---
         if (!player.is_dead && !player.game_over) {
+            // Colisão com carros
             for (int i = 0; i < active_car_count; i++) {
                 if (active_cars[i].check_collision(&active_cars[i], player.hitbox)) {
                     player_die(&player, &effects[1]);
@@ -136,34 +197,42 @@ int main() {
             }
         }
 
-        // --- Desenho de todos os elementos na tela ---
+        // --- Desenho ---
         BeginDrawing();
         ClearBackground(RAYWHITE);
-
-        // Fundo
         DrawTexture(background, 0, 0, WHITE);
 
-        // Jogador (vivo ou morto)
+        // Troncos
+        for (int i = 0; i < trunk_count; i++) {
+            trunk[i].draw(&trunk[i]);
+        }
+        
+        // Carros
+        for (int i = 0; i < active_car_count; i++) {
+            active_cars[i].draw(&active_cars[i]);
+        }
+        
+        // Jogador
         if (!player.is_dead) {
             draw_player(&player, 32, 32, 5);
         } else {
             dead_player(&player, 32, 32, 3);
         }
 
-        // Carros inimigos
-        for (int i = 0; i < active_car_count; i++) {
-            active_cars[i].draw(&active_cars[i]);
-        }
+        timer_event(&player, dt, font, &timer);
+        // HUD
+        draw_hud(font, player.lives, player.score, life, &timer);
+        
 
-        // HUD (vidas, score, etc)
-        draw_hud(font, player.lives, player.score, life);
+        check_home_event(&player, frog);
+        check_fly_event(&player, fly);
 
         // --- Tela de Game Over ---
         if (player.game_over) {
             DrawText("GAME OVER", 140, 200, 40, RED);
             DrawText("Pressione ESPAÇO para recomeçar", 80, 260, 20, BLACK);
             if (IsKeyPressed(KEY_SPACE)) {
-                // Reinicia o estado do jogador
+                // Reinicia estado do jogo
                 player.game_over = false;
                 player.lives = 5;
                 player.score = 0;
@@ -176,43 +245,45 @@ int main() {
                 for (int i = 0; i < 5; i++) {
                     player.oc_houses[i] = false;
                 }
+                
+                // Limpa carros e troncos
+                free(active_cars);
+                active_cars = NULL;
+                active_car_count = 0;
+                
+                free(trunk);
+                trunk = NULL;
+                trunk_count = 0;
+
+                // Reinicia timers de spawn
+                for (int i = 0; i < NUM_LANES; i++) spawn_timers[i] = 0;
+                for (int i = 0; i < NUM_LANE_TRUNK; i++) trunk_spawn_timers[i] = 0;
             }
         }
-
-        // --- Verifica se o jogador chegou ao destino ---
-        get_home(&player, &frog); // Verifica se o jogador chegou ao destino
 
         EndDrawing();
     }
 
     // --- Liberação de recursos ---
-    // Libera carros ativos
-    for (int i = 0; i < active_car_count; i++) {
-        active_cars[i].unload(&active_cars[i]);
+    if (active_cars) {
+        for (int i = 0; i < active_car_count; i++) active_cars[i].unload(&active_cars[i]);
+        free(active_cars);
     }
-    free(active_cars);
+    if (trunk) {
+        for (int i = 0; i < trunk_count; i++) trunk[i].unload(&trunk[i]);
+        free(trunk);
+    }
 
-    // Libera texturas
     UnloadTexture(background);
     UnloadTexture(life);
     UnloadTexture(frog);
-
-    // Libera sons
-    for (int i = 0; i < 4; i++) {
-        UnloadSound(effects[i]);
-    }
-    StopMusicStream(frogsoath);
-
-    // Libera música
+    
+    for (int i = 0; i < 4; i++) UnloadSound(effects[i]);
     UnloadMusicStream(frogsoath);
-
-    // Libera recursos do jogador
+    
     player_unload(&player);
-
-    // Libera fontes
     UnloadFont(font);
 
-    // Fecha dispositivos e janela
     CloseAudioDevice();
     CloseWindow();
 

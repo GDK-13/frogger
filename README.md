@@ -9,7 +9,7 @@ Um remake moderno do clássico Frogger, desenvolvido em C utilizando a bibliotec
 - **Setas direcionais**: Movem o sapo (↑, ↓, ←, →)
 - **ENTER**: Reinicia o jogo
 - **ESC**: Encerra o jogo
-- **PAUSAR**: 
+- **PAUSAR**: (implemente conforme desejar)
 
 ---
 
@@ -18,14 +18,22 @@ Um remake moderno do clássico Frogger, desenvolvido em C utilizando a bibliotec
 - **Pontuação**:  
     - +10 pontos a cada linha (32 pixels) avançada para cima.
     - +200 pontos ao ocupar uma casa no topo.
+    - +100 pontos extras ao ocupar uma casa com uma mosca ativa.
 - **Vidas**:  
     - Início com 5 vidas.
-    - Perde 1 vida ao colidir com um carro.
+    - Perde 1 vida ao colidir com um carro ou cair na água.
     - Game Over ao perder todas as vidas.
 - **Casas**:  
     - 5 casas disponíveis no topo.
     - Ao chegar em uma casa livre, ela é ocupada e um sapo aparece nela.
     - Complete todas as casas para vencer.
+- **Mosca bônus**:
+    - Uma mosca aparece aleatoriamente em casas vazias por tempo limitado.
+    - Se o jogador ocupar uma casa com a mosca ativa, ganha 100 pontos extras.
+    - Após ser capturada ou expirar, a mosca entra em cooldown antes de reaparecer.
+- **Cronômetro**:
+    - O tempo de partida é exibido no canto inferior direito da tela.
+    - O cronômetro para quando todas as casas são ocupadas ou ocorre Game Over.
 
 ---
 
