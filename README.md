@@ -95,8 +95,8 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 > Certifique-se de que a pasta correta esteja sendo utilizada durante a execução do jogo, conforme seu sistema operacional.
 
 - Após a compilação, **dois executáveis** são gerados na pasta `game/bin/Debug/`:
-  - `Frogger2025.exe` (para Windows)
-  - `Frogger2025` (para Linux/macOS)
+  - `sappoWINDOWS.exe` (para Windows)
+  - `sappoLINUX` (para Linux/macOS)
 
 > Execute o binário correspondente ao seu sistema operacional.
 
