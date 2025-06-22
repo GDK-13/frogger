@@ -101,7 +101,7 @@ bool is_turtle_free(Turtle *turtle, int turtle_count, int lane_y, int new_x, int
                 .height = existing.height 
             };
             // Verifica colisão entre tartarugas
-            if (CheckCollisionRecs(new_turtle, existing)) {
+            if (CheckCollisionRecs(new_turtle, existing) || fabs(existing.x - new_x) < MIN_TURTLE_DISTANCE ) {
                 return false; // Espaço ocupado
             }
         }
