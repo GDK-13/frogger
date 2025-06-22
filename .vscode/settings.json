@@ -70,6 +70,7 @@
     "raylib.h": "c",
     "stdlib.h": "c",
     "animation.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "turtle.h": "c"
   }
 }

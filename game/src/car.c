@@ -3,7 +3,7 @@
 #include <stdlib.h>       // Biblioteca padrão para alocação de memória e funções gerais
 #include <stdbool.h>      // Biblioteca para manipulação de valores booleanos
 
-#include "enemies.h"      // Arquivo de cabeçalho para definição da TAD EnemyCar
+#include "car.h"      // Arquivo de cabeçalho para definição da TAD EnemyCar
 
 // Função para inicializar os dados do inimigo
 static void enemy_init(struct EnemyCar *self, const char *texture_path, Vector2 position, float speed) {

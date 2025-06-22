@@ -13,6 +13,7 @@ struct player {
     Vector2 target_position;
     Texture2D texture;
     int score;
+    int final_score;
     Animation anim;
     bool is_moving;
     float rotation;

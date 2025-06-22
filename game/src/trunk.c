@@ -35,7 +35,7 @@ static void trunk_init(struct Trunk *self, const char **texture_paths, Vector2 p
         .x = position.x,
         .y = position.y,
         .width = self->parts_width * parts,
-        .height = self->textures[0].height
+        .height = self->textures[0].height-4
     };
 }
 

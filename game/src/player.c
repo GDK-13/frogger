@@ -23,6 +23,7 @@ void player_init(struct player *p, const char *texture_path, Vector2 position) {
 
     p->lives = 5;
     p->score = 0;
+    p->final_score = 0;
     p->is_moving = false;
     p->rotation = 0.0f;
     p->is_dead = false;
@@ -201,12 +202,15 @@ bool player_on_trunk(struct player *p, Trunk *trunk_list, int trunk_count, float
     return false;
 }
 
-bool player_on_turtle(struct player *player, Turtle *turtle, int turtle_count, float dt) {
+bool player_on_turtle(struct player *p, Turtle *turtle_list, int turtle_count, float dt) {
+    if (!p || !turtle_list || p->is_dead || p->game_over) return false;
+
     for (int i = 0; i < turtle_count; i++) {
-        if (CheckCollisionRecs(player->hitbox, turtle[i].hitbox)) {
-            player->position.x += turtle[i].speed * dt;
-            player->target_position.x = player->position.x;
-            player->hitbox.x = player->position.x;
+        if (turtle_list[i].active && CheckCollisionRecs(p->hitbox, turtle_list[i].hitbox)) {
+            if (!p->is_moving) {
+                p->position.x += turtle_list[i].speed * dt;
+                p->target_position.x = p->position.x;
+            }
             return true;
         }
     }

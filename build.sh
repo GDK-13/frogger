@@ -11,10 +11,11 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         game/src/main.c \
         game/src/player.c \
         game/src/animation.c \
-        game/src/enemies.c \
+        game/src/car.c \
         game/src/hud.c \
         game/src/events.c \
         game/src/trunk.c \
+        game/src/turtle.c \
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \
@@ -26,10 +27,11 @@ elif [[ "$OSTYPE" == "msys" ]]; then
         game/src/main.c \
         game/src/player.c \
         game/src/animation.c \
-        game/src/enemies.c \
+        game/src/car.c \
         game/src/hud.c \
         game/src/events.c \
         game/src/trunk.c \
+        game/src/turtle.c \
         -Igame/include -Igame/src \
         -Lgame/bin/Debug \
         -lraylib \

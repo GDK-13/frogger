@@ -4,10 +4,12 @@
 // Define o tempo de duração da mosca e o cooldown entre aparições
 #define FLY_DURATION 15.0f    // Tempo que a mosca fica ativa (em segundos)
 #define FLY_COOLDOWN 20.0f    // Tempo de cooldown para reaparecer (em segundos)
+#define MAX_TIME_SCORE 180.0f // Tempo máximo para ganhar pontuação extra (em segundos)
 
 // Variáveis globais para controle do cronômetro
 float game_timer = 0.0f;      // Tempo total do jogo em segundos
 bool timer_running = true;    // Indica se o cronômetro está ativo
+bool winner = false;        // Indica se o jogador venceu o jogo
 
 // Posições das casas no topo da tela
 Vector2 home[5] = {
@@ -34,6 +36,16 @@ void timer_event(struct player *p, float delta_time, Font fonte, Time *timer) {
     timer->elapsed = game_timer;
     timer->minutes = (int)(game_timer / 60);
     timer->seconds = (int)(game_timer) % 60;
+        if (p->game_over || winner) {
+        p->final_score = p->score;
+
+        float total_time = timer->minutes * 60 + timer->seconds;
+
+        float time_bonus = MAX_TIME_SCORE - total_time;
+        if (time_bonus < 0) time_bonus = 0; // Evita score negativo
+
+        p->final_score += (int)(time_bonus * 5); // Fator de peso ajustável
+    }
 }
 
 // Desenha as casas do topo, os sapos ocupando as casas e gerencia a pontuação ao chegar nelas
@@ -69,6 +81,11 @@ void check_home_event(struct player *p, Texture2D sapo) {
                 p->oc_houses[i] = true; // Marca a casa como ocupada
             }
         }
+    }
+    if (p->oc_houses[4] && p->oc_houses[3] && p->oc_houses[2] && p->oc_houses[1] && p->oc_houses[0]) {
+        // Se todas as casas estão ocupadas, o jogador venceu
+        winner = true;
+        timer_running = false; // Para o cronômetro
     }
 }
 

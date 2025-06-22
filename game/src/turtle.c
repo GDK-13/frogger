@@ -28,7 +28,7 @@ static void turtle_init(struct Turtle *self, const char *texture_path, Vector2 p
         .x = self->position.x,
         .y = self->position.y,
         .width = self->texture.width * parts,
-        .height = self->texture.height,
+        .height = self->texture.height-4
     };
 }
 
@@ -47,9 +47,42 @@ static void turtle_draw(const struct Turtle *self) {
     if (!self || self->parts <= 0) return;
 
     for (int i = 0; i < self->parts; i++) {
-    DrawTexture(self->texture, self->position.x + i * self->texture.width, self->position.y, WHITE);
+        // Calcula a posição bruta de cada segmento da tartaruga
+        float segment_x = self->position.x + i * self->texture.width;
+        float segment_y = self->position.y;
+
+        // Origem no centro do sprite
+        Vector2 origin = {
+            self->texture.width / 2.0f,
+            self->texture.height / 2.0f
+        };
+
+        // Posição corrigida para desenhar considerando a origem central
+        Vector2 draw_pos = {
+            segment_x + origin.x+16,
+            segment_y + origin.y+16
+        };
+
+        if (self->position.y > 200) {
+            DrawTextureEx(
+                self->texture,
+                draw_pos,         // posição corrigida
+                180.0f,           // rotação
+                1.0f,             // escala
+                WHITE
+            );
+        } else {
+            // Desenho padrão sem rotação
+            DrawTexture(
+                self->texture,
+                segment_x,
+                segment_y,
+                WHITE
+            );
+        }
     }
 }
+
 
 // Função para liberar os recursos da tartaruga
 static void turtle_unload(struct Turtle *self) {
