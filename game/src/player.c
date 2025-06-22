@@ -6,6 +6,7 @@
 #include "player.h"
 #include "animation.h"
 #include "trunk.h"
+#include "turtle.h"
 
 bool oc_houses[5] = { false, false, false, false, false };
 
@@ -194,6 +195,18 @@ bool player_on_trunk(struct player *p, Trunk *trunk_list, int trunk_count, float
                 p->position.x += trunk_list[i].speed * dt;
                 p->target_position.x = p->position.x;
             }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool player_on_turtle(struct player *player, Turtle *turtle, int turtle_count, float dt) {
+    for (int i = 0; i < turtle_count; i++) {
+        if (CheckCollisionRecs(player->hitbox, turtle[i].hitbox)) {
+            player->position.x += turtle[i].speed * dt;
+            player->target_position.x = player->position.x;
+            player->hitbox.x = player->position.x;
             return true;
         }
     }

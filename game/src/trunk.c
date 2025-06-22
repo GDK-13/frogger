@@ -4,7 +4,7 @@
 #include <stdbool.h>      // Biblioteca para manipulação de valores booleanos
 #include <string.h> // Operações com strings
 
-#include "trunk.h"      // Arquivo de cabeçalho para definição da TAD FloatingObj
+#include "trunk.h"      // Arquivo de cabeçalho para definição da TAD Trunk
 
 #define MAX_TEXTURE_PARTS 4  // Número máximo de partes de uma textura 
 #define MIN_TRUNK_DISTANCE 130 // Distância mínima entre troncos na mesma faixa
