@@ -1,124 +1,209 @@
 #include "screen.h"
 #include <stdio.h>
 
-// Verifica se o botão representado por 'rect' foi clicado com o mouse
+// ===================== CORES =====================
+Color light = (Color){ 205, 178, 171, 255 };
+Color dark  = (Color){ 46, 22, 51, 255 };
+
+// ===================== BOTÃO =====================
+// Verifica se o botão foi clicado
 static bool ButtonClicked(Rectangle rect) {
     return CheckCollisionPointRec(GetMousePosition(), rect) &&
            IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 }
 
-// Inicializa as posições dos botões e carrega a fonte usada nas telas
+// ===================== INICIALIZAÇÃO DAS TELAS =====================
 static void screen_init(ScreenManager *self) {
     int centerX = GetScreenWidth() / 2;
 
-    self->btnStart = (Rectangle){ centerX - 100, 300, 200, 50 };
-    self->btnRestart = (Rectangle){ centerX - 100, 300, 200, 50 };
-    self->btnBackToMenu = (Rectangle){ centerX - 100, 400, 200, 50 };
-    self->btnBackToMenuWin = (Rectangle){ centerX - 100, 400, 200, 50 };
-
-    self->font =LoadFontEx("resources/fontes/8_bit_fortress/8-bit-fortress.ttf", 32, NULL, 0);
+    self->font = LoadFontEx("resources/fontes/8_bit_fortress/8-bit-fortress.ttf", 32, NULL, 0);
     if (self->font.baseSize == 0) {
         printf("Erro: Não foi possível carregar a fonte 8-bit\n");
         CloseWindow();
     }
 
+    self->backmenu = LoadTexture("resources/bg/sappo.png");
+    self->backui = LoadTexture("resources/bg/backui.png");
+
+    self->imgstart = LoadTexture("resources/bg/start/start_00.png");
+    self->imgstarthover = LoadTexture("resources/bg/start/start_01.png");
+
+    self->imgrestart = LoadTexture("resources/bg/restart/restart_00.png");
+    self->imgrestarthover = LoadTexture("resources/bg/restart/restart_01.png");
+
+    self->imgbacktomenu = LoadTexture("resources/bg/menu/menu_00.png");
+    self->imgbacktomenuhover = LoadTexture("resources/bg/menu/menu_01.png");
+
+    self->imgquit = LoadTexture("resources/bg/quit/00_quit.png");
+    self->imgquithover = LoadTexture("resources/bg/quit/01_quit.png");
+
+    self->btnStart = (Rectangle){ centerX - 100, 300, 200, 50 };
+    self->btnQuit = (Rectangle){ centerX - 100, 370, 200, 50 };
+    self->btnRestart = (Rectangle){ centerX - 100, 300, 200, 50 };
+    self->btnRestartPause = (Rectangle){ centerX - 100, 300, 200, 50 };
+    self->btnBackToMenu = (Rectangle){ centerX - 100, 400, 200, 50 };
+    self->btnBackToMenuWin = (Rectangle){ centerX - 100, 400, 200, 50 };
 }
 
-// Atualiza o estado do jogo baseado na tela atual e ações do jogador
+// ===================== ATUALIZAÇÃO DAS TELAS =====================
 static void screen_update(ScreenManager *self, GameScreen *next_screen) {
     switch (self->current) {
         case SCREEN_MENU:
-            if (ButtonClicked(self->btnStart)) {
+            if (ButtonClicked(self->btnStart)) *next_screen = SCREEN_GAMEPLAY;
+            if (ButtonClicked(self->btnQuit)) CloseWindow();
+            break;
+        case SCREEN_PAUSE:
+            if (ButtonClicked(self->btnRestartPause)) {
+                reset_game_state();
                 *next_screen = SCREEN_GAMEPLAY;
             }
+            if (ButtonClicked(self->btnBackToMenu)) *next_screen = SCREEN_MENU;
             break;
-
-        case SCREEN_PAUSE:
-            if (ButtonClicked(self->btnBackToMenu)) {
-                *next_screen = SCREEN_MENU;
-            }
-            break;
-
         case SCREEN_WIN:
-            if (ButtonClicked(self->btnBackToMenuWin)) {
-                *next_screen = SCREEN_MENU;
-            }
+            if (ButtonClicked(self->btnBackToMenuWin)) *next_screen = SCREEN_MENU;
             break;
-
+        case SCREEN_GAME_OVER:
+            if (ButtonClicked(self->btnRestart)) {
+                reset_game_state();
+                *next_screen = SCREEN_GAMEPLAY;
+            }
+            if (ButtonClicked(self->btnBackToMenu)) *next_screen = SCREEN_MENU;
+            break;
         default:
             break;
     }
 }
 
-// Desenha a interface gráfica para a tela atual
+// ===================== DESENHO DAS TELAS =====================
 static void screen_draw(const ScreenManager *self) {
-
     switch (self->current) {
         case SCREEN_MENU: {
-            // Desenha o título do menu principal
-            const char *title = "MENU PRINCIPAL";
-            int titleFontSize = 40;
-            int titleX = GetScreenWidth() / 2 - MeasureText(title, titleFontSize) / 2;
-            DrawTextEx(self->font, title, (Vector2){titleX, 150}, titleFontSize, 2, WHITE);
-
-            // Botão START com efeito hover
-            Color btnColor = CheckCollisionPointRec(GetMousePosition(), self->btnStart) ? GRAY : DARKGRAY;
-            DrawRectangleRec(self->btnStart, btnColor);
-
-            const char *btnText = "START";
-            int btnFontSize = 20;
-            int btnTextX = self->btnStart.x + self->btnStart.width / 2 - MeasureText(btnText, btnFontSize) / 2;
-            int btnTextY = self->btnStart.y + 15;
-            DrawText(btnText, btnTextX, btnTextY, btnFontSize, WHITE);
+            DrawTexture(self->backmenu, 0, 0, WHITE);
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnStart) ? self->imgstarthover : self->imgstart,
+                self->btnStart.x, self->btnStart.y, WHITE
+            );
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnQuit) ? self->imgquithover : self->imgquit,
+                self->btnQuit.x, self->btnQuit.y, WHITE
+            );
             break;
         }
-
         case SCREEN_WIN: {
-            int screenCenter = GetScreenWidth() / 2;
+            int screenWidth = GetScreenWidth();
 
-            // Mensagem de vitória
-            DrawTextEx(self->font, "VITÓRIA!", (Vector2){screenCenter - 100, 100}, 40, 2, GREEN);
+            DrawTexture(self->backui, 0, 0, WHITE);
 
-            // Exibe pontuação final
+            // Título centralizado
+            const char *title = "VITORIA!";
+            int titleFontSize = 40;
+            int titleWidth = MeasureTextEx(self->font, title, titleFontSize, 2).x;
+            DrawTextEx(
+                self->font,
+                title,
+                (Vector2){ (screenWidth - titleWidth) / 2, 80 },
+                titleFontSize, 2, (Color){164, 142, 105, 255 }
+            );
+
+            // Subtítulo centralizado
+            const char *subtitle = "Todos os sapos chegaram em casa!";
+            int subtitleFontSize = 15;
+            Vector2 subtitleSize = MeasureTextEx(self->font, subtitle, subtitleFontSize, 1);
+            float subtitleX = (screenWidth - subtitleSize.x) / 2.0f;
+            if (subtitleX < 0) subtitleX = 0;
+            Color subtitleShadow = (Color){ light.r, light.g, light.b, light.a - 100 };
+            DrawTextEx(
+                self->font,
+                subtitle,
+                (Vector2){ subtitleX, 130 },
+                subtitleFontSize, 1, subtitleShadow
+            );
+
+            // Pontuação centralizada
             char score_text[64];
             sprintf(score_text, "PONTOS: %d", self->final_score);
-            DrawTextEx(self->font, score_text, (Vector2){screenCenter - 80, 160}, 24, 1, WHITE);
+            int scoreFontSize = 24;
+            Vector2 scoreSize = MeasureTextEx(self->font, score_text, scoreFontSize, 1);
+            DrawTextEx(
+                self->font,
+                score_text,
+                (Vector2){ (screenWidth - scoreSize.x) / 2.0f, 180 },
+                scoreFontSize, 1, light
+            );
 
-            // Exibe tempo total
+            // Tempo centralizado
             char time_text[64];
             sprintf(time_text, "TEMPO: %.2f segundos", self->total_time);
-            DrawTextEx(self->font, time_text, (Vector2){screenCenter - 100, 190}, 24, 1, WHITE);
+            int timeFontSize = 24;
+            Vector2 timeSize = MeasureTextEx(self->font, time_text, timeFontSize, 1);
+            DrawTextEx(
+                self->font,
+                time_text,
+                (Vector2){ (screenWidth - timeSize.x) / 2.0f, 210 },
+                timeFontSize, 1, light
+            );
 
-            // Botão MENU para voltar
-            DrawRectangleRec(self->btnBackToMenuWin, DARKGRAY);
-            DrawText("MENU", self->btnBackToMenuWin.x + 70, self->btnBackToMenuWin.y + 15, 20, WHITE);
+            // Botão Menu centralizado
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnBackToMenu) ? self->imgbacktomenuhover : self->imgbacktomenu,
+                self->btnBackToMenu.x, self->btnBackToMenu.y, WHITE
+            );
             break;
         }
-
         case SCREEN_PAUSE: {
-            // Texto de pausa centralizado
-            const char *pauseText = "PAUSADO";
-            int pauseFontSize = 40;
+            DrawTextureEx(self->backui, (Vector2){0, 0}, 0.0f, 1.0f, WHITE);
+            const char *pauseText = "PAUSADO!";
+            int pauseFontSize = 50;
             int pauseTextX = GetScreenWidth() / 2 - MeasureText(pauseText, pauseFontSize) / 2;
-            DrawTextEx(self->font, pauseText, (Vector2){pauseTextX, 150}, pauseFontSize, 2, YELLOW);
+            DrawTextEx(self->font, pauseText, (Vector2){pauseTextX, 150}, pauseFontSize, 0, light);
 
-            // Botão MENU com efeito hover
-            Color btnColor = CheckCollisionPointRec(GetMousePosition(), self->btnBackToMenu) ? GRAY : DARKGRAY;
-            DrawRectangleRec(self->btnBackToMenu, btnColor);
+            // Botão Restart centralizado
+            float btnRestartWidth = self->imgrestart.width;
+            float btnRestartX = (GetScreenWidth() - btnRestartWidth) / 2.0f;
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnRestartPause) ? self->imgrestarthover : self->imgrestart,
+                btnRestartX, self->btnRestartPause.y, WHITE
+            );
 
-            int btnFontSize = 20;
-            int btnTextX = self->btnBackToMenu.x + self->btnBackToMenu.width / 2 - MeasureText("MENU", btnFontSize) / 2;
-            int btnTextY = self->btnBackToMenu.y + 15;
-            DrawText("MENU", btnTextX, btnTextY, btnFontSize, WHITE);
+            // Botão Menu centralizado
+            float btnWidth = self->imgbacktomenu.width;
+            float btnX = (GetScreenWidth() - btnWidth) / 2.0f;
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnBackToMenu) ? self->imgbacktomenuhover : self->imgbacktomenu,
+                btnX, self->btnBackToMenu.y, WHITE
+            );
             break;
         }
+        case SCREEN_GAME_OVER: {
+            int screen_width = GetScreenWidth();
+            int screen_height = GetScreenHeight();
+            
+            DrawTexture(self->backui, 0, 0, WHITE);
 
+            Vector2 center = {
+                (screen_width - MeasureTextEx(self->font, "GAME OVER", 50, 0).x) / 2, 200
+            };
+            DrawTextEx(self->font, "!GAME OVER!", center, 50, 0, (Color){154, 132, 95, 255 });
+
+            // Botão Restart
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnRestart) ? self->imgrestarthover : self->imgrestart,
+                self->btnRestart.x, self->btnRestart.y, WHITE
+            );
+
+            // Botão Menu
+            DrawTexture(
+                CheckCollisionPointRec(GetMousePosition(), self->btnBackToMenu) ? self->imgbacktomenuhover : self->imgbacktomenu,
+                self->btnBackToMenu.x, self->btnBackToMenu.y, WHITE
+            );
+            break;
+        }
         default:
             break;
     }
 }
 
-// Função para criar e inicializar o ScreenManager com seus métodos
+// ===================== CRIAÇÃO DO SCREEN MANAGER =====================
 ScreenManager create_screen_manager() {
     ScreenManager s = {0};
     s.current = SCREEN_MENU;

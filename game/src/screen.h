@@ -19,12 +19,30 @@ typedef struct ScreenManager {
 
     // Botões usados nas diferentes telas
     Rectangle btnStart;           // Botão "Start" no menu
+    Rectangle btnQuit;            // Botão "Quit" no menu
     Rectangle btnRestart;         // Botão "Restart" na tela de Game Over
-    Rectangle btnBackToMenu;      // Botão "Menu" na tela de pausa
+    Rectangle btnRestartPause;    // Botão "Restart" na tela de pausa
+    Rectangle btnBackToMenu;      // Botão "Menu" na tela de pausa e game over
     Rectangle btnBackToMenuWin;   // Botão "Menu" na tela de vitória
 
     // Fonte usada nos textos das telas
     Font font;
+
+    // Imagens das telas e botões
+    Texture2D backmenu;           // Imagem de fundo do menu
+    Texture2D backui;             // Imagem de fundo das telas de UI
+
+    Texture2D imgstart;           // Imagem do botão "Start"
+    Texture2D imgstarthover;      // Imagem do botão "Start" quando hover
+
+    Texture2D imgrestart;         // Imagem do botão "Restart"
+    Texture2D imgrestarthover;    // Imagem do botão "Restart" quando hover
+
+    Texture2D imgbacktomenu;      // Imagem do botão "Menu"
+    Texture2D imgbacktomenuhover; // Imagem do botão "Menu" quando hover
+
+    Texture2D imgquit;           // Imagem do botão "Quit"
+    Texture2D imgquithover;      // Imagem do botão "Quit" quando hover
 
     // Informações exibidas na tela de vitória
     int final_score;     // Pontuação final
@@ -37,7 +55,7 @@ typedef struct ScreenManager {
 } ScreenManager;
 
 // Cria e retorna um ScreenManager com ponteiros já configurados
-ScreenManager create_screen_manager();
+ScreenManager create_screen_manager(void);
 
 // Função externa que reinicia o estado do jogo
 extern void reset_game_state(void);

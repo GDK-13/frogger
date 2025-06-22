@@ -7,7 +7,7 @@
 #include "turtle.h"
 #include <stdbool.h>
 
-// Estrutura para armazenar os dados do jogador
+// ===================== ESTRUTURA DO JOGADOR =====================
 struct player {
     Vector2 position;
     Vector2 target_position;
@@ -29,6 +29,8 @@ struct player {
     bool oc_houses[5];
 };
 
+// ===================== FUNÇÕES DO JOGADOR =====================
+
 // Inicializa os dados do jogador
 void player_init(struct player *p, const char *texture_path, Vector2 position);
 
@@ -46,9 +48,6 @@ void player_die(struct player *p, Sound *death_sound);
 
 // Desenha o jogador morto
 void dead_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row);
-
-// Verifica se o jogador chegou em uma das "casas"
-void get_home(struct player *p, Texture2D *sapo);
 
 // Verifica se o jogador está em cima de um tronco
 bool player_on_trunk(struct player *p, Trunk *trunk, int trunk_count, float dt);

@@ -2,14 +2,12 @@
 #include "raymath.h"
 #include <stdlib.h>
 #include <stdbool.h>
-
 #include "player.h"
 #include "animation.h"
 #include "trunk.h"
 #include "turtle.h"
 
-bool oc_houses[5] = { false, false, false, false, false };
-
+// ===================== INICIALIZAÇÃO DO JOGADOR =====================
 void player_init(struct player *p, const char *texture_path, Vector2 position) {
     p->start_position = position;
     p->target_position = position;
@@ -54,11 +52,12 @@ void player_init(struct player *p, const char *texture_path, Vector2 position) {
     }
 }
 
+// ===================== ATUALIZAÇÃO DO JOGADOR =====================
 void player_update(struct player *p, float dt, int frame_width, int frame_height, Sound *jump_sound) {
     if (p->is_dead) {
         animation_update(&p->death_animation, dt);
         p->death_timer += dt;
-        p->hitbox = (Rectangle){0, 0, 0, 0}; // Zera a Hitbox para evitar colisões fantasma
+        p->hitbox = (Rectangle){0, 0, 0, 0};
 
         if (!p->game_over && p->death_timer >= 2.0f) {
             p->is_dead = false;
@@ -125,6 +124,7 @@ void player_update(struct player *p, float dt, int frame_width, int frame_height
     }
 }
 
+// ===================== DESENHO DO JOGADOR =====================
 void draw_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row) {
     Rectangle src = animation_frame_rect(&p->anim, frame_width, frame_height, num_frames_per_row);
     Rectangle dest = { p->position.x + frame_width / 2.0f, p->position.y + frame_height / 2.0f, frame_width, frame_height };
@@ -132,11 +132,13 @@ void draw_player(const struct player *p, int frame_width, int frame_height, int 
     DrawTexturePro(p->texture, src, dest, origin, p->rotation, WHITE);
 }
 
+// ===================== LIBERAÇÃO DE RECURSOS =====================
 void player_unload(struct player *p) {
     UnloadTexture(p->texture);
     UnloadTexture(p->death_texture);
 }
 
+// ===================== MORTE DO JOGADOR =====================
 void player_die(struct player *p, Sound *death_sound) {
     if (p->is_dead || p->game_over) return;
 
@@ -152,6 +154,7 @@ void player_die(struct player *p, Sound *death_sound) {
     }
 }
 
+// ===================== DESENHO DA ANIMAÇÃO DE MORTE =====================
 void dead_player(const struct player *p, int frame_width, int frame_height, int num_frames_per_row) {
     Rectangle src = animation_frame_rect(&p->death_animation, frame_width, frame_height, num_frames_per_row);
     Rectangle dest = { p->position.x + frame_width / 2.0f, p->position.y + frame_height / 2.0f, frame_width, frame_height };
@@ -159,34 +162,7 @@ void dead_player(const struct player *p, int frame_width, int frame_height, int 
     DrawTexturePro(p->death_texture, src, dest, origin, 0.0f, WHITE);
 }
 
-void get_home(struct player *p, Texture2D *sapo) {
-    Vector2 home[5] = {
-        { 22, 92 }, { 22 + (3 * 32), 92 }, { 22 + (6 * 32), 92 },
-        { 22 + (9 * 32), 92 }, { 22 + (12 * 32), 92 }
-    };
-
-    for (int i = 0; i < 5; i++) {
-        DrawRectangle(home[i].x, home[i].y, 20, 32, BLANK); // Tornando invisível, pois a lógica de evento deve cuidar disso
-        if (p->oc_houses[i]) {
-            DrawTexture(*sapo, home[i].x - 6 , home[i].y - 28, WHITE);
-        }
-    }
-
-    for (int i = 0; i < 5; i++) {
-        if (CheckCollisionRecs(p->hitbox, (Rectangle){ home[i].x, home[i].y, 20, 32 })) {
-            if (IsKeyPressed(KEY_UP) && !p->oc_houses[i]) {
-                p->score += 200;
-                p->position = p->start_position;
-                p->target_position = p->start_position;
-                p->anim.current_frame = 0;
-                p->rotation = 0.0f;
-                p->is_dead = false;
-                p->oc_houses[i] = true;
-            }
-        }
-    }
-}
-
+// ===================== CHECA SE ESTÁ EM CIMA DE TRONCO =====================
 bool player_on_trunk(struct player *p, Trunk *trunk_list, int trunk_count, float dt) {
     if (!p || !trunk_list || p->is_dead || p->game_over) return false;
 
@@ -202,6 +178,7 @@ bool player_on_trunk(struct player *p, Trunk *trunk_list, int trunk_count, float
     return false;
 }
 
+// ===================== CHECA SE ESTÁ EM CIMA DE TARTARUGA =====================
 bool player_on_turtle(struct player *p, Turtle *turtle_list, int turtle_count, float dt) {
     if (!p || !turtle_list || p->is_dead || p->game_over) return false;
 

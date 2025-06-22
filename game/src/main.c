@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Caminhos dos sprites dos carros usados no jogo
+// ===================== SPRITES E CONSTANTES =====================
 const char *car_sprites[] = {
     "resources/sprites/frogbreath_sp/caminhao.png",
     "resources/sprites/frogbreath_sp/carro1.png",
@@ -21,7 +21,6 @@ const char *car_sprites[] = {
     "resources/sprites/frogbreath_sp/carro4.png"
 };
 
-// Caminhos dos sprites dos troncos usados no jogo
 const char *trunk_sprites[] = {
     "resources/sprites/frogbreath_sp/tronco1.png",
     "resources/sprites/frogbreath_sp/tronco2.png",
@@ -29,17 +28,17 @@ const char *trunk_sprites[] = {
     "resources/sprites/frogbreath_sp/tronco4.png"
 };
 
-// Sprites para troncos de duas partes (especiais)
 const char *two_part_trunk[] = {
     "resources/sprites/frogbreath_sp/tronco1.png",
     "resources/sprites/frogbreath_sp/tronco4.png"
 };
 
-// Estado global do jogador
+const char *turtle_sprite = "resources/sprites/frogbreath_sp/tartaruga.png";
+
+// ===================== VARIÁVEIS GLOBAIS =====================
 struct player player;
 Time timer;
 
-// Listas dinâmicas para inimigos e obstáculos
 EnemyCar *active_cars = NULL;
 int active_car_count = 0;
 const int max_cars_on_screen = 10;
@@ -61,9 +60,7 @@ const int turtle_lane_y_positions[] = {225, 156};
 #define NUM_TURTLE_LANES (sizeof(turtle_lane_y_positions) / sizeof(turtle_lane_y_positions[0]))
 float turtle_spawn_timers[NUM_TURTLE_LANES] = {0};
 
-bool paused = false;
-
-// Função que reseta o estado do jogo para o início
+// ===================== FUNÇÃO DE RESET =====================
 void reset_game_state() {
     player.game_over = false;
     player.lives = 5;
@@ -76,11 +73,8 @@ void reset_game_state() {
     player.is_dead = false;
     player.min_y_position = player.start_position.y;
 
-    for (int i = 0; i < 5; i++) {
-        player.oc_houses[i] = false;
-    }
+    for (int i = 0; i < 5; i++) player.oc_houses[i] = false;
 
-    // Libera memória e reseta listas de carros, troncos e tartarugas
     free(active_cars);
     active_cars = NULL;
     active_car_count = 0;
@@ -93,14 +87,14 @@ void reset_game_state() {
     turtle = NULL;
     turtle_count = 0;
 
-    // Zera timers de spawn
     for (int i = 0; i < NUM_LANES; i++) spawn_timers[i] = 0;
     for (int i = 0; i < NUM_LANE_TRUNK; i++) trunk_spawn_timers[i] = 0;
     for (int i = 0; i < NUM_TURTLE_LANES; i++) turtle_spawn_timers[i] = 0;
 }
 
+// ===================== MAIN =====================
 int main() {
-    // Inicializa a janela do jogo
+    // Inicialização da janela e do Raylib
     const int screen_width = 448;
     const int screen_height = 512;
     InitWindow(screen_width, screen_height, "Frogger 2025");
@@ -109,7 +103,7 @@ int main() {
     ScreenManager screenManager = create_screen_manager();
     screenManager.init(&screenManager);
 
-    // Inicializa áudio
+    // Inicialização do áudio
     InitAudioDevice();
     if (!IsAudioDeviceReady()) {
         printf("Erro: Não foi possível inicializar o dispositivo de áudio\n");
@@ -117,68 +111,71 @@ int main() {
         return 1;
     }
 
-    srand(time(NULL));  // Inicializa semente do gerador de números aleatórios
+    srand(time(NULL));
 
-    // Carrega texturas
+    // Carregamento de texturas e sons
     Texture2D background = LoadTexture("resources/bg/frogbreath_bg.png");
     if (background.id == 0) {
         printf("Erro: Não foi possível carregar textura do background\n");
         CloseWindow();
         return 1;
     }
-
     Texture2D life = LoadTexture("resources/sprites/life.png");
     Texture2D frog = LoadTexture("resources/sprites/frog.png");
     Texture2D fly = LoadTexture("resources/sprites/fly.png");
 
-    // Carrega efeitos sonoros
     Sound effects[4] = {
         LoadSound("resources/sounds/completion.wav"),
         LoadSound("resources/sounds/death.wav"),
         LoadSound("resources/sounds/jump.wav"),
         LoadSound("resources/sounds/powerUp.wav")
     };
-
     SetSoundVolume(effects[0], 0.50f);
     SetSoundVolume(effects[1], 0.80f);
     SetSoundVolume(effects[2], 0.25f);
     SetSoundVolume(effects[3], 0.50f);
 
-    // Carrega música de fundo
     Music frogsoath = LoadMusicStream("resources/sounds/frogsoath.ogg");
 
-    // Inicializa jogador com sprite e posição inicial
+    // Inicialização do jogador
     player_init(&player, "resources/sprites/sapo-ani.png", (Vector2){224, 448});
 
     PlayMusicStream(frogsoath);
 
-    // Loop principal do jogo
+    bool paused = false;
+    bool show_hitboxes = false;
+
+    // ===================== LOOP PRINCIPAL =====================
     while (!WindowShouldClose()) {
         UpdateMusicStream(frogsoath);
         float dt = GetFrameTime();
 
-        // Salva a tela anterior
-        GameScreen previousScreen = screenManager.current;
+        // Alterna exibição das hitboxes
+        if (IsKeyPressed(KEY_F4)) show_hitboxes = !show_hitboxes;
 
-        // Atualiza a tela (trata cliques, botões, etc.)
+        GameScreen previousScreen = screenManager.current;
         screenManager.update(&screenManager, &screenManager.current);
 
-        // Alterna pausa com Enter
-        if (IsKeyPressed(KEY_ENTER)) {
-            paused = !paused;
+        // Controle de pausa
+        if (screenManager.current == SCREEN_GAMEPLAY && IsKeyPressed(KEY_ENTER)) {
+            screenManager.current = SCREEN_PAUSE;
+        } else if (screenManager.current == SCREEN_PAUSE && IsKeyPressed(KEY_ENTER)) {
+            screenManager.current = SCREEN_GAMEPLAY;
         }
 
-        // Atualiza o cronômetro se não estiver pausado e estiver em gameplay
-        if (!paused && screenManager.current == SCREEN_GAMEPLAY) {
-            timer_event(&player, dt, screenManager.font , &timer);
+        // Atualiza cronômetro apenas durante gameplay
+        if (screenManager.current == SCREEN_GAMEPLAY) {
+            timer_event(&player, dt, screenManager.font, &timer);
         }
 
+        // Reset do jogo ao sair do menu para gameplay
         if (previousScreen == SCREEN_MENU && screenManager.current == SCREEN_GAMEPLAY) {
             reset_game_state();
         }
 
+        // ===================== GAMEPLAY =====================
         if (screenManager.current == SCREEN_GAMEPLAY) {
-            // Spawn de carros nas faixas
+            // Spawn de carros
             for (int i = 0; i < NUM_LANES; i++) {
                 spawn_timers[i] -= dt;
                 if (spawn_timers[i] <= 0) {
@@ -188,7 +185,7 @@ int main() {
                 }
             }
 
-            // Spawn de troncos nas faixas
+            // Spawn de troncos
             for (int i = 0; i < NUM_LANE_TRUNK; i++) {
                 trunk_spawn_timers[i] -= dt;
                 if (trunk_spawn_timers[i] <= 0) {
@@ -200,102 +197,76 @@ int main() {
                 }
             }
 
-            // Spawn de tartarugas nas faixas
+            // Spawn de tartarugas
             for (int i = 0; i < NUM_TURTLE_LANES; i++) {
                 turtle_spawn_timers[i] -= dt;
                 if (turtle_spawn_timers[i] <= 0) {
                     turtle_spawn_timers[i] = (rand() % 3) + 5;
                     float speed = (i % 2 == 0) ? 45.0f : -60.0f;
                     int parts = 3;
-                    spawn_turtle(&turtle, &turtle_count, "resources/sprites/frogbreath_sp/tartaruga.png", speed, i, max_turtles_on_screen, turtle_lane_y_positions, parts);
+                    spawn_turtle(&turtle, &turtle_count, turtle_sprite, speed, i, max_turtles_on_screen, turtle_lane_y_positions, parts);
                 }
             }
 
-            // Atualiza carros ativos e remove os que saem da tela
+            // Atualiza e remove carros/troncos/tartarugas fora da tela
             for (int i = 0; i < active_car_count; i++) {
                 active_cars[i].update(&active_cars[i], dt);
-
                 if ((active_cars[i].speed > 0 && active_cars[i].position.x > GetScreenWidth()) ||
                     (active_cars[i].speed < 0 && active_cars[i].position.x < -active_cars[i].texture.width)) {
                     active_cars[i].unload(&active_cars[i]);
-
-                    // Remove carro da lista
-                    for (int j = i; j < active_car_count - 1; j++) {
-                        active_cars[j] = active_cars[j + 1];
-                    }
+                    for (int j = i; j < active_car_count - 1; j++) active_cars[j] = active_cars[j + 1];
                     active_car_count--;
-                    if (active_car_count > 0) {
-                        active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar));
-                    } else {
-                        free(active_cars);
-                        active_cars = NULL;
-                    }
+                    if (active_car_count > 0) active_cars = realloc(active_cars, active_car_count * sizeof(EnemyCar));
+                    else { free(active_cars); active_cars = NULL; }
                     i--;
                 }
             }
-
-            // Atualiza troncos ativos e remove os que saem da tela
             for (int i = 0; i < trunk_count; i++) {
                 trunk[i].update(&trunk[i], dt);
-
                 if ((trunk[i].speed > 0 && trunk[i].position.x > GetScreenWidth()) ||
                     (trunk[i].speed < 0 && trunk[i].position.x + trunk[i].hitbox.width < 0)) {
                     trunk[i].unload(&trunk[i]);
-
-                    // Remove tronco da lista
-                    for (int j = i; j < trunk_count - 1; j++) {
-                        trunk[j] = trunk[j + 1];
-                    }
+                    for (int j = i; j < trunk_count - 1; j++) trunk[j] = trunk[j + 1];
                     trunk_count--;
-                    if (trunk_count > 0) {
-                        trunk = realloc(trunk, trunk_count * sizeof(Trunk));
-                    } else {
-                        free(trunk);
-                        trunk = NULL;
-                    }
+                    if (trunk_count > 0) trunk = realloc(trunk, trunk_count * sizeof(Trunk));
+                    else { free(trunk); trunk = NULL; }
                     i--;
                 }
             }
-
-            // Atualiza tartarugas ativas e remove as que saem da tela
             for (int i = 0; i < turtle_count; i++) {
                 turtle[i].update(&turtle[i], dt);
-
                 if ((turtle[i].speed > 0 && turtle[i].position.x > GetScreenWidth()) ||
                     (turtle[i].speed < 0 && turtle[i].position.x + turtle[i].hitbox.width < 0)) {
                     turtle[i].unload(&turtle[i]);
-
-                    // Remove tartaruga da lista
-                    for (int j = i; j < turtle_count - 1; j++) {
-                        turtle[j] = turtle[j + 1];
-                    }
+                    for (int j = i; j < turtle_count - 1; j++) turtle[j] = turtle[j + 1];
                     turtle_count--;
-                    if (turtle_count > 0) {
-                        turtle = realloc(turtle, turtle_count * sizeof(Turtle));
-                    } else {
-                        free(turtle);
-                        turtle = NULL;
-                    }
+                    if (turtle_count > 0) turtle = realloc(turtle, turtle_count * sizeof(Turtle));
+                    else { free(turtle); turtle = NULL; }
                     i--;
                 }
             }
 
-            // Atualiza o jogador (movimento, animação, etc)
+            // Atualiza jogador
             player_update(&player, dt, 32, 32, &effects[2]);
 
-            // Define área da água para detectar afogamento
-            Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160};
-
-            // Verifica se jogador está sobre tronco ou tartaruga
+            // Checa se o jogador está na água sem apoio
+            Rectangle water_area = {0, 96, (float)GetScreenWidth(), 155};
             bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt);
             bool on_turtle = player_on_turtle(&player, turtle, turtle_count, dt);
-
-            // Se estiver na água sem apoio e vivo, o jogador morre afogado
             if (CheckCollisionRecs(player.hitbox, water_area) && !on_trunk && !on_turtle && !player.is_dead) {
                 player_die(&player, &effects[1]);
             }
 
-            // Verifica colisão do jogador com carros
+            // Checa se o jogador saiu da tela
+            if (!player.is_dead) {
+                Rectangle bounds = player.hitbox;
+                if (bounds.x + bounds.width < 0 || bounds.x > GetScreenWidth() ||
+                    bounds.y + bounds.height < 0 || bounds.y > GetScreenHeight()) {
+                    player_die(&player, &effects[1]);
+                }
+            }
+
+            // Colisão com carros
             if (!player.is_dead && !player.game_over) {
                 for (int i = 0; i < active_car_count; i++) {
                     if (active_cars[i].check_collision(&active_cars[i], player.hitbox)) {
@@ -305,7 +276,7 @@ int main() {
                 }
             }
 
-            // Verifica condição de vitória (casas ocupadas)
+            // Checa vitória
             bool victory = true;
             for (int i = 0; i < 5; i++) {
                 if (!player.oc_houses[i]) {
@@ -313,149 +284,74 @@ int main() {
                     break;
                 }
             }
-
-            // Se venceu, muda para tela de vitória e pausa o jogo
-            if (victory && !player.game_over && !player.is_dead) {
+            if (victory && !player.game_over && !player.is_dead || IsKeyDown(KEY_F3)) {
                 screenManager.final_score = player.score;
                 screenManager.total_time = timer.elapsed;
                 screenManager.current = SCREEN_WIN;
-                paused = true;
+            }
+
+            // Checa game over
+            if (player.game_over || IsKeyPressed(KEY_F2)) {
+                screenManager.current = SCREEN_GAME_OVER;
             }
         }
 
-        // Começa desenho na tela
+        // ===================== DESENHO =====================
         BeginDrawing();
-
         ClearBackground(BLACK);
 
-        screenManager.update(&screenManager, &screenManager.current);
-        screenManager.draw(&screenManager);
-
-
-
         if (screenManager.current == SCREEN_GAMEPLAY) {
-
-             ClearBackground(RAYWHITE);
-            // Desenha background do jogo
+            ClearBackground(RAYWHITE);
             DrawTexture(background, 0, 0, WHITE);
 
-            // Desenha elementos da tela atual
-            screenManager.draw(&screenManager);
+            check_home_event(&player, frog, show_hitboxes, &effects[0]);
+            check_fly_event(&player, fly, show_hitboxes);
 
-            // Eventos do jogo
-            check_home_event(&player, frog);
-
-            if (!paused) {
-                check_fly_event(&player, fly);
-            }
-
-            // Desenha troncos e suas hitboxes
             for (int i = 0; i < trunk_count; i++) {
                 trunk[i].draw(&trunk[i]);
-                DrawRectangleLines((int)trunk[i].hitbox.x, (int)trunk[i].hitbox.y,
-                                   (int)trunk[i].hitbox.width, (int)trunk[i].hitbox.height, ORANGE);
+                if (show_hitboxes)
+                    DrawRectangleLines((int)trunk[i].hitbox.x, (int)trunk[i].hitbox.y,
+                                      (int)trunk[i].hitbox.width, (int)trunk[i].hitbox.height, ORANGE);
             }
-
-            // Desenha carros e suas hitboxes
             for (int i = 0; i < active_car_count; i++) {
                 active_cars[i].draw(&active_cars[i]);
-                DrawRectangleLines((int)active_cars[i].hitbox.x, (int)active_cars[i].hitbox.y,
-                                   (int)active_cars[i].hitbox.width, (int)active_cars[i].hitbox.height, RED);
+                if (show_hitboxes)
+                    DrawRectangleLines((int)active_cars[i].hitbox.x, (int)active_cars[i].hitbox.y,
+                                      (int)active_cars[i].hitbox.width, (int)active_cars[i].hitbox.height, RED);
             }
-
-            // Desenha tartarugas e suas hitboxes
             for (int i = 0; i < turtle_count; i++) {
                 turtle[i].draw(&turtle[i]);
-                DrawRectangleLines((int)turtle[i].hitbox.x, (int)turtle[i].hitbox.y,
-                                   (int)turtle[i].hitbox.width, (int)turtle[i].hitbox.height, DARKGREEN);
+                if (show_hitboxes)
+                    DrawRectangleLines((int)turtle[i].hitbox.x, (int)turtle[i].hitbox.y,
+                                      (int)turtle[i].hitbox.width, (int)turtle[i].hitbox.height, DARKGREEN);
             }
-
-            // Desenha jogador, diferente se morto ou vivo
             if (!player.is_dead) {
                 draw_player(&player, 32, 32, 5);
             } else {
                 dead_player(&player, 32, 32, 3);
             }
+            if (show_hitboxes)
+                DrawRectangleLines((int)player.hitbox.x, (int)player.hitbox.y,
+                                   (int)player.hitbox.width, (int)player.hitbox.height, BLUE);
 
-            // Desenha hitbox do jogador
-            DrawRectangleLines((int)player.hitbox.x, (int)player.hitbox.y,
-                               (int)player.hitbox.width, (int)player.hitbox.height, BLUE);
-
-            // Desenha HUD com informações (vidas, pontuação, etc)
             draw_hud(screenManager.font, player.lives, player.score, life, &timer);
-
-            // Tela de pausa
-            if (paused) {
-                pause_game(screenManager.font);
-
-                const char *buttonText = "Voltar ao Menu";
-                int buttonFontSize = 20;
-                int textWidth = MeasureText(buttonText, buttonFontSize);
-                int x = (screen_width - textWidth) / 2;
-                int y = 300;
-                int padding = 10;
-
-                Rectangle menuButton = { x - padding, y - padding, textWidth + 2 * padding, buttonFontSize + 2 * padding };
-                Vector2 mouse = GetMousePosition();
-
-                DrawRectangleRec(menuButton, LIGHTGRAY);
-                DrawText(buttonText, x, y, buttonFontSize, BLACK);
-
-                // Detecta clique no botão para voltar ao menu
-                if (CheckCollisionPointRec(mouse, menuButton) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    screenManager.current = SCREEN_MENU;
-                    paused = false;
-                }
-            }
-
-            // Tela de Game Over
-            if (player.game_over) {
-                DrawRectangle(0, 0, screen_width, screen_height, (Color){0, 0, 0, 180});
-
-                Vector2 center = {
-                    (screen_width - MeasureTextEx( screenManager.font, "GAME OVER", 40, 0).x) / 2, 200
-                };
-                DrawTextEx(screenManager.font, "GAME OVER", center, 40, 0, RED);
-
-                const char *subtitle = "RESTART";
-                int font_size = 20;
-                int text_width = MeasureText(subtitle, font_size);
-                int text_height = font_size;
-                int x = (screen_width - text_width) / 2;
-                int y = 260;
-
-                // Retângulo do botão Restart
-                Rectangle buttonBounds = { x - 10, y - 5, text_width + 20, text_height + 10 };
-                Vector2 mousePoint = GetMousePosition();
-                Color buttonColor = GRAY;
-
-                DrawRectangleRec(buttonBounds, buttonColor);
-                DrawText(subtitle, x, y, font_size, WHITE);
-
-                // Detecta clique no botão Restart para resetar o jogo
-                if (CheckCollisionPointRec(mousePoint, buttonBounds) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    reset_game_state();
-                }
-            } else {
-                // Desenha outros elementos da tela caso não seja Game Over
-                screenManager.draw(&screenManager);
-            }
         }
+
+        // Desenha telas de menu, pausa, vitória e game over
+        screenManager.draw(&screenManager);
+
         EndDrawing();
     }
-         
-    
-    // Libera todos os recursos antes de fechar o programa
+
+    // ===================== LIBERAÇÃO DE RECURSOS =====================
     if (active_cars) {
         for (int i = 0; i < active_car_count; i++) active_cars[i].unload(&active_cars[i]);
         free(active_cars);
     }
-
     if (trunk) {
         for (int i = 0; i < trunk_count; i++) trunk[i].unload(&trunk[i]);
         free(trunk);
     }
-
     if (turtle) {
         for (int i = 0; i < turtle_count; i++) turtle[i].unload(&turtle[i]);
         free(turtle);
@@ -465,6 +361,23 @@ int main() {
     UnloadTexture(life);
     UnloadTexture(frog);
     UnloadTexture(fly);
+    UnloadTexture(screenManager.backmenu);
+    UnloadTexture(screenManager.backui);
+    UnloadTexture(screenManager.imgstart);
+    UnloadTexture(screenManager.imgstarthover);
+    UnloadTexture(screenManager.imgrestart);
+    UnloadTexture(screenManager.imgbacktomenu);
+    UnloadTexture(screenManager.imgbacktomenuhover);
+    UnloadTexture(screenManager.imgquit);
+    UnloadTexture(screenManager.imgquithover);
+
+    UnloadTexture(turtle->texture);
+
+    for (int i = 0; i < trunk_count; i++) {
+        for (int j = 0; j < trunk[i].parts; j++) {
+            UnloadTexture(trunk[i].textures[j]);
+        }
+    
 
     for (int i = 0; i < 4; i++) UnloadSound(effects[i]);
     UnloadMusicStream(frogsoath);
@@ -476,4 +389,5 @@ int main() {
     CloseWindow();
 
     return 0;
+}
 }
