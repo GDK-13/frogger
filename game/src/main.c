@@ -10,6 +10,17 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include "raylib.h" // Biblioteca principal da Raylib para gráficos, áudio, etc.
+#include "player.h" // Header do jogador
+#include "enemies.h" // Header dos inimigos (carros)
+#include "trunk.h" // Header dos troncos
+#include "events.h" // Header dos eventos do jogo
+#include "animation.h" // Header das animações
+#include "hud.h" // Header do HUD (placar, vidas, etc)
+#include <stdio.h> // Biblioteca padrão de entrada/saída
+#include <math.h> // Biblioteca matemática
+#include <stdlib.h> // Biblioteca padrão (malloc, free, rand, etc)
+#include <time.h> // Biblioteca para manipulação de tempo
 
 // Caminhos dos sprites dos carros
 const char *car_sprites[] = {
@@ -186,6 +197,32 @@ int main() {
                 }
             }
 
+            // --- Atualização dos troncos ativos ---
+            for (int i = 0; i < trunk_count; i++) {
+                trunk[i].update(&trunk[i], dt); // Atualiza posição do tronco
+                // Remove tronco se saiu da tela
+                if ((trunk[i].speed > 0 && trunk[i].position.x > GetScreenWidth()) ||
+                    (trunk[i].speed < 0 && trunk[i].position.x + trunk[i].hitbox.width < 0)) {
+                    trunk[i].unload(&trunk[i]); // Libera recursos do tronco
+                    for (int j = i; j < trunk_count - 1; j++) {
+                        trunk[j] = trunk[j + 1]; // Move troncos restantes
+                    }
+                    trunk_count--;
+                    if (trunk_count > 0) {
+                        trunk = realloc(trunk, trunk_count * sizeof(Trunk)); // Redimensiona array
+                    } else {
+                        free(trunk); // Libera array se vazio
+                        trunk = NULL;
+                    }
+                    i--;
+                }
+            }
+            
+            // --- Atualização do jogador ---
+            player_update(&player, dt, 32, 32, &effects[2]); // Atualiza o jogador
+
+            Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160}; // Área da água
+            bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt); // Verifica se o jogador está em um tronco
         // --- Atualização dos troncos ativos ---
         for (int i = 0; i < trunk_count; i++) {
             trunk[i].update(&trunk[i], dt);
@@ -215,7 +252,7 @@ int main() {
                     turtle[j] = turtle[j + 1];
                 }
                 turtle_count--;
-                if (turtle_count > 0) {}
+                if (turtle_count > 0) {
                     turtle = realloc(turtle, turtle_count * sizeof(Turtle));
                 } else {
                     free(turtle);
@@ -229,32 +266,6 @@ int main() {
         bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt);
         bool on_turtle = player_on_turtle(&player, turtle, turtle_count, dt);
 
-            // --- Atualização dos troncos ativos ---
-            for (int i = 0; i < trunk_count; i++) {
-                trunk[i].update(&trunk[i], dt); // Atualiza posição do tronco
-                // Remove tronco se saiu da tela
-                if ((trunk[i].speed > 0 && trunk[i].position.x > GetScreenWidth()) ||
-                    (trunk[i].speed < 0 && trunk[i].position.x + trunk[i].hitbox.width < 0)) {
-                    trunk[i].unload(&trunk[i]); // Libera recursos do tronco
-                    for (int j = i; j < trunk_count - 1; j++) {
-                        trunk[j] = trunk[j + 1]; // Move troncos restantes
-                    }
-                    trunk_count--;
-                    if (trunk_count > 0) {
-                        trunk = realloc(trunk, trunk_count * sizeof(Trunk)); // Redimensiona array
-                    } else {
-                        free(trunk); // Libera array se vazio
-                        trunk = NULL;
-                    }
-                    i--;
-                }
-            }
-            
-            // --- Atualização do jogador ---
-            player_update(&player, dt, 32, 32, &effects[2]); // Atualiza o jogador
-
-            Rectangle water_area = {0, 96, (float)GetScreenWidth(), 160}; // Área da água
-            bool on_trunk = player_on_trunk(&player, trunk, trunk_count, dt); // Verifica se o jogador está em um tronco
 
             // Se o jogador está na água, não está em um tronco e não está morto, ele morre afogado
             if (CheckCollisionRecs(player.hitbox, water_area) && !on_trunk && !on_turtle && !player.is_dead) {
@@ -300,11 +311,6 @@ int main() {
         for (int i = 0; i < turtle_count; i++) {
         turtle[i].draw(&turtle[i]);
         }
-
-        // Tartaruga
-        for (int i = 0; i < turtle_count; i++) {
-        turtle[i].draw(&turtle[i]);
-        }
         
         // Jogador
         if (!player.is_dead) {
@@ -320,6 +326,10 @@ int main() {
         if (paused) {
             pause_game(font); // Desenha tela de pausa
         }
+        draw_hud(font, player.lives, player.score, life, &timer);
+        
+        check_home_event(&player, frog);
+        check_fly_event(&player, fly);
 
         // --- Tela de Game Over ---
         if (player.game_over) {
@@ -366,11 +376,6 @@ int main() {
     if (trunk) {
         for (int i = 0; i < trunk_count; i++) trunk[i].unload(&trunk[i]); // Libera recursos dos troncos
         free(trunk); // Libera array de troncos
-    }
-
-    if (turtle) {
-    for (int i = 0; i < turtle_count; i++) turtle[i].unload(&turtle[i]);
-    free(turtle);
     }
 
     if (turtle) {
