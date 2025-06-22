@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Caminho de saída do executável
-OUTPUT="game/bin/Debug/sappo"
+OUTPUT="game/bin/Debug/sappoLINUX"
 
 # Detecta o sistema operacional e compila
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -29,7 +29,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         -lm -ldl -lpthread -lrt -lX11 \
         -std=c17 -g -DPLATFORM_DESKTOP
 elif [[ "$OSTYPE" == "msys" ]]; then
-    OUTPUT="game/bin/Debug/sappo.exe"
+    OUTPUT="game/bin/Debug/sappoWINDOWS.exe"
     COMPILER="gcc"
     $COMPILER -o $OUTPUT \
         game/src/main.c \
@@ -56,10 +56,10 @@ if [ $? -eq 0 ]; then
     echo "Running the game..."
     cd game/bin/Debug || { echo "Erro ao acessar a pasta game/bin/Debug."; exit 3; }
     # Verifica se o executável existe antes de rodar
-    if [ -f "./sappo" ]; then
-        ./sappo
-    elif [ -f "./sappo.exe" ]; then
-        ./sappo.exe
+    if [ -f "./sappoLINUX" ]; then
+        ./sappoLINUX
+    elif [ -f "./sappoWINDOWS.exe" ]; then
+        ./sappoWINDOWS.exe
     else
         echo "Executável não encontrado após compilação."
         exit 4
