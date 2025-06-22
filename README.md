@@ -52,7 +52,12 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 - [Raylib](https://www.raylib.com/) instalada (versão 4.x recomendada)
 - Compilador C (gcc, clang, etc.)
 
-*O projeto possui um script de compilação automatizado chamado `build.sh` na raiz do repositório.*
+*O projeto possui **dois scripts de compilação automatizados** na raiz do repositório:*
+
+- `build.sh` – para **Linux/macOS**
+- `build.bat` – para **Windows**
+
+---
 
 ### Linux/macOS
 
@@ -66,27 +71,31 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
     ```
    O script irá:
    - Compilar todos os arquivos fonte do projeto.
-   - Gerar o executável na pasta `game/bin/Debug` (ou similar).
+   - Gerar o executável na pasta `game/bin/Debug`.
    - Se a compilação for bem-sucedida, o jogo será iniciado automaticamente.
+
+---
 
 ### Windows (MSYS2/MinGW)
 
 1. Abra o terminal MSYS2/MinGW na pasta do projeto.
-2. Execute:
+2. Execute o script:
     ```sh
-    sh build.sh
+    build.bat
     ```
    O script irá:
    - Compilar o projeto usando o gcc do MSYS2/MinGW.
    - Gerar o executável na pasta `game/bin/Debug`.
    - Iniciar o jogo automaticamente se não houver erros.
 
-### Observações sobre o script e a estrutura do projeto
+---
 
-- O script detecta o sistema operacional e ajusta os comandos de compilação conforme necessário.
+### Observações sobre os scripts e a estrutura do projeto
+
+- Cada script é específico para seu sistema operacional.
 - Certifique-se de que o Raylib esteja corretamente instalado e configurado no seu sistema.
 - Caso encontre erros de biblioteca não encontrada, verifique se as variáveis de ambiente do Raylib estão corretas.
-- Se desejar apenas compilar (sem executar), edite o script e comente a linha final que executa o binário.
+- Se desejar apenas compilar (sem executar), edite o script correspondente e comente a linha final que executa o binário.
 
 - Existem **duas pastas `resources/`**, uma para cada sistema operacional:
   - `resources/linux/` – usada no Linux/macOS.
@@ -95,20 +104,19 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 > Certifique-se de que a pasta correta esteja sendo utilizada durante a execução do jogo, conforme seu sistema operacional.
 
 - Após a compilação, **dois executáveis** são gerados na pasta `game/bin/Debug/`:
-  - `Frogger2025.exe` (para Windows)
-  - `Frogger2025` (para Linux/macOS)
+  - `sappoWINDOWS.exe` (para Windows)
+  - `sappoLINUX` (para Linux/macOS)
 
 > Execute o binário correspondente ao seu sistema operacional.
-
 
 ---
 
 ## 📦 Recursos
 
-- **Sprites**: `resources/sprites/`
-- **Fontes**: `resources/fontes/`
-- **Sons**: `resources/sounds/`
-- **Background e UI**: `resources/bg/`
+- **Sprites**: `resources/[sistema]/sprites/`
+- **Fontes**: `resources/[sistema]/fontes/`
+- **Sons**: `resources/[sistema]/sounds/`
+- **Background e UI**: `resources/[sistema]/bg/`
 
 ---
 
@@ -135,4 +143,3 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 - Modifique, melhore e compartilhe à vontade!
 - Para dúvidas ou sugestões, abra uma issue ou envie um pull request.
 - **Atenção**: Todo o desenvolvimento e testes deste projeto foram realizados utilizando o Visual Studio Code. Não podemos garantir que o template e o projeto funcionarão corretamente em outras IDEs.
-
