@@ -89,8 +89,8 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 - Se desejar apenas compilar (sem executar), edite o script e comente a linha final que executa o binário.
 
 - Existem **duas pastas `resources/`**, uma para cada sistema operacional:
-  - `resources/linux/` – usada no Linux/macOS.
-  - `resources/windows/` – usada no Windows.
+  - `game/bin/Debug/resources` – usada no Linux/macOS.
+  - `game/resources` – usada no Windows.
 
 > Certifique-se de que a pasta correta esteja sendo utilizada durante a execução do jogo, conforme seu sistema operacional.
 
