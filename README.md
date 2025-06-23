@@ -49,8 +49,11 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 
 ### Pré-requisitos
 
-- [Raylib](https://www.raylib.com/) instalada (versão 4.x recomendada)
+- **[Raylib](https://www.raylib.com/)** instalada (versão 4.x recomendada)
 - Compilador C (gcc, clang, etc.)
+- **[make](https://www.gnu.org/software/make/)** (para uso dos scripts automatizados)
+    - Linux/macOS: normalmente já vem instalado ou pode ser instalado via gerenciador de pacotes (`make` ou `gmake`, versão 4.x ou superior recomendada)
+    - Windows: use o [GnuWin Make](http://gnuwin32.sourceforge.net/packages/make.htm) ou o [make do MSYS2](https://packages.msys2.org/package/make) (versão 4.x ou superior recomendada)
 
 *O projeto possui **dois scripts de compilação automatizados** na raiz do repositório:*
 
@@ -74,6 +77,25 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
    - Gerar o executável na pasta `game/bin/Debug`.
    - Se a compilação for bem-sucedida, o jogo será iniciado automaticamente.
 
+**Ou, para compilar manualmente via terminal, use:**
+```sh
+gcc -o game/bin/Debug/sappoLINUX \
+    game/src/main.c \
+    game/src/player.c \
+    game/src/animation.c \
+    game/src/car.c \
+    game/src/hud.c \
+    game/src/events.c \
+    game/src/trunk.c \
+    game/src/turtle.c \
+    game/src/screen.c \
+    -Igame/include -Igame/src \
+    -Lgame/bin/Debug \
+    -lraylib \
+    -lm -ldl -lpthread -lrt -lX11 \
+    -std=c17 -g -DPLATFORM_DESKTOP
+```
+
 ---
 
 ### Windows (MSYS2/MinGW)
@@ -85,8 +107,27 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
     ```
    O script irá:
    - Compilar o projeto usando o gcc do MSYS2/MinGW.
-   - Gerar o executável na pasta `game/bin/Debug`.
+   - Gerar o executável na pasta [Debug](http://_vscodecontentref_/0).
    - Iniciar o jogo automaticamente se não houver erros.
+
+**Ou, para compilar manualmente via terminal, use:**
+```sh
+gcc -o game/bin/Debug/sappoWINDOWS.exe \
+    game/src/main.c \
+    game/src/player.c \
+    game/src/animation.c \
+    game/src/car.c \
+    game/src/hud.c \
+    game/src/events.c \
+    game/src/trunk.c \
+    game/src/turtle.c \
+    game/src/screen.c \
+    -Igame/include -Igame/src \
+    -Lgame/bin/Debug \
+    -lraylib \
+    -lopengl32 -lgdi32 -lwinmm \
+    -std=c17 -g -DPLATFORM_DESKTOP
+````
 
 ---
 
@@ -103,7 +144,7 @@ Um remake moderno do clássico Frogger, desenvolvido em C com a biblioteca [Rayl
 
 > Certifique-se de que a pasta correta esteja sendo utilizada durante a execução do jogo, conforme seu sistema operacional.
 
-- Após a compilação, **dois executáveis** são gerados na pasta `game/bin/Debug/`:
+- Após a compilação, o executavel será gerado na pasta `game/bin/Debug/`:
   - `sappoWINDOWS.exe` (para Windows)
   - `sappoLINUX` (para Linux/macOS)
 

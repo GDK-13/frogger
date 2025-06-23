@@ -11,6 +11,10 @@ typedef struct {
     float elapsed;
 } Time;
 
+// ===================== VARIÁVEIS EXTERNAS =====================
+extern bool timer_running;
+extern bool winner;
+
 // ===================== FUNÇÕES DE EVENTOS =====================
 
 // Atualiza o cronômetro do jogo

@@ -62,6 +62,9 @@ float turtle_spawn_timers[NUM_TURTLE_LANES] = {0};
 
 // ===================== FUNÇÃO DE RESET =====================
 void reset_game_state() {
+    extern float game_timer;
+    extern bool timer_running;
+    extern bool winner;
     player.game_over = false;
     player.lives = 5;
     player.score = 0;
@@ -90,6 +93,10 @@ void reset_game_state() {
     for (int i = 0; i < NUM_LANES; i++) spawn_timers[i] = 0;
     for (int i = 0; i < NUM_LANE_TRUNK; i++) trunk_spawn_timers[i] = 0;
     for (int i = 0; i < NUM_TURTLE_LANES; i++) turtle_spawn_timers[i] = 0;
+
+    game_timer = 0.0f;      // <-- Zera o timer global
+    timer_running = true;   // <-- Garante que o timer volte a contar
+    winner = false;         // <-- Reseta o estado de vitória
 }
 
 // ===================== MAIN =====================
