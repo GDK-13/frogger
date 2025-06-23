@@ -201,7 +201,7 @@ int main() {
             for (int i = 0; i < NUM_TURTLE_LANES; i++) {
                 turtle_spawn_timers[i] -= dt;
                 if (turtle_spawn_timers[i] <= 0) {
-                    turtle_spawn_timers[i] = (rand() % 3) + 5;
+                    turtle_spawn_timers[i] = (rand() % 2) + 3;
                     float speed = (i % 2 == 0) ? 45.0f : -60.0f;
                     int parts = 3;
                     spawn_turtle(&turtle, &turtle_count, turtle_sprite, speed, i, max_turtles_on_screen, turtle_lane_y_positions, parts);
